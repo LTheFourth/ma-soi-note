@@ -6,6 +6,7 @@ import './components/components.css'
 import './screens/newgame.css'
 import './screens/setup.css'
 import './screens/day.css'
+import './screens/night.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

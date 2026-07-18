@@ -1,0 +1,7 @@
+.night-layout { display: grid; grid-template-columns: 1fr 260px; gap: 16px; }
+.night-role { font-size: 1.5em; }
+.prev-actions { font-size: .9em; color: #999; }
+.survivor-list { list-style: none; padding: 0; }
+.survivor-list li { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+.summary-list { padding-left: 18px; }
+.night-nav { display: flex; gap: 8px; margin-top: 12px; }
