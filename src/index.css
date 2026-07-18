@@ -1,0 +1,10 @@
+:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; cursor: pointer; }
+.app { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.eliminated { filter: grayscale(1) opacity(0.5); position: relative; }
+.eliminated::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom right, transparent 47%, red 48%, red 52%, transparent 53%);
+}
