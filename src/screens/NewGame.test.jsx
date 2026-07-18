@@ -24,6 +24,26 @@ describe('NewGame', () => {
     expect(start).toBeEnabled()
   })
 
+  it('deletes a player from the library and the list', async () => {
+    const user = userEvent.setup()
+    render(<NewGame />)
+    expect(screen.getByRole('button', { name: 'Al' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /delete Al/i }))
+    expect(useLibraryStore.getState().players.map((p) => p.name)).toEqual(['Bo'])
+    expect(screen.queryByRole('button', { name: 'Al' })).toBeNull()
+  })
+
+  it('deletes a role and prunes it from the selection', async () => {
+    const user = userEvent.setup()
+    render(<NewGame />)
+    await user.click(screen.getByRole('button', { name: 'Wolf' }))   // select it
+    await user.click(screen.getByRole('button', { name: /delete Wolf/i }))
+    expect(useLibraryStore.getState().roles).toHaveLength(0)
+    expect(screen.queryByRole('button', { name: 'Wolf' })).toBeNull()
+    // no roles selected -> night call order section gone, start disabled
+    expect(screen.getByRole('button', { name: /start game/i })).toBeDisabled()
+  })
+
   it('starting a game activates the game store in setup phase', async () => {
     const user = userEvent.setup()
     render(<NewGame />)

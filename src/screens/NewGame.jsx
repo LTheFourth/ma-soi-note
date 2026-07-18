@@ -4,7 +4,8 @@ import { useGameStore } from '../store/gameStore.js'
 import RoleOrder from './RoleOrder.jsx'
 
 export default function NewGame() {
-  const { players, roles, addPlayer, addRole, updateRole, reorderRoles } = useLibraryStore()
+  const { players, roles, addPlayer, removePlayer, addRole, removeRole, updateRole, reorderRoles } =
+    useLibraryStore()
   const startGame = useGameStore((s) => s.startGame)
 
   const [selPlayers, setSelPlayers] = useState(() => new Set())
@@ -17,6 +18,15 @@ export default function NewGame() {
     const next = new Set(set)
     next.has(id) ? next.delete(id) : next.add(id)
     setter(next)
+  }
+
+  const deletePlayer = (id) => {
+    removePlayer(id)
+    setSelPlayers((s) => { const n = new Set(s); n.delete(id); return n })
+  }
+  const deleteRole = (id) => {
+    removeRole(id)
+    setSelRoles((s) => { const n = new Set(s); n.delete(id); return n })
   }
 
   const orderedSelectedRoles = roles
@@ -40,14 +50,22 @@ export default function NewGame() {
         <h2>Players</h2>
         <div className="chip-row">
           {players.map((p) => (
-            <button
-              key={p.id}
-              className="chip"
-              aria-pressed={selPlayers.has(p.id)}
-              onClick={() => toggle(selPlayers, setSelPlayers)(p.id)}
-            >
-              {p.name}
-            </button>
+            <span key={p.id} className="chip-wrap">
+              <button
+                className="chip"
+                aria-pressed={selPlayers.has(p.id)}
+                onClick={() => toggle(selPlayers, setSelPlayers)(p.id)}
+              >
+                {p.name}
+              </button>
+              <button
+                className="chip-del"
+                aria-label={`delete ${p.name}`}
+                onClick={() => deletePlayer(p.id)}
+              >
+                ✕
+              </button>
+            </span>
           ))}
         </div>
         <div className="inline-add">
@@ -60,15 +78,23 @@ export default function NewGame() {
         <h2>Roles</h2>
         <div className="chip-row">
           {roles.map((r) => (
-            <button
-              key={r.id}
-              className="chip"
-              aria-pressed={selRoles.has(r.id)}
-              style={{ borderColor: selRoles.has(r.id) ? r.color : undefined }}
-              onClick={() => toggle(selRoles, setSelRoles)(r.id)}
-            >
-              {r.name}
-            </button>
+            <span key={r.id} className="chip-wrap">
+              <button
+                className="chip"
+                aria-pressed={selRoles.has(r.id)}
+                style={{ borderColor: selRoles.has(r.id) ? r.color : undefined }}
+                onClick={() => toggle(selRoles, setSelRoles)(r.id)}
+              >
+                {r.name}
+              </button>
+              <button
+                className="chip-del"
+                aria-label={`delete ${r.name}`}
+                onClick={() => deleteRole(r.id)}
+              >
+                ✕
+              </button>
+            </span>
           ))}
         </div>
         <div className="inline-add">
