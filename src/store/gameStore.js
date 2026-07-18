@@ -50,6 +50,9 @@ export const useGameStore = create(
           actionLog: [...s.actionLog, { id: uid(), actor, target, type, note, round }],
         })),
 
+      removeAction: (id) =>
+        set((s) => ({ actionLog: s.actionLog.filter((a) => a.id !== id) })),
+
       startNight: () =>
         set((s) => ({ phase: 'night', round: s.round + 1, nightCursor: 0 })),
 
@@ -57,6 +60,9 @@ export const useGameStore = create(
         set((s) => ({
           nightCursor: Math.min(s.nightCursor + 1, selectNightRoles(s).length),
         })),
+
+      nightPrev: () =>
+        set((s) => ({ nightCursor: Math.max(0, s.nightCursor - 1) })),
 
       endNight: () => set({ phase: 'day' }),
 

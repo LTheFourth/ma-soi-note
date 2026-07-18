@@ -71,6 +71,27 @@ describe('gameStore', () => {
     expect(g().actionLog[0].id).toBeTruthy()
   })
 
+  it('removeAction deletes an action by id', () => {
+    g().startGame(players, roles)
+    g().logAction({ actor: 'wolf', target: 'p3', type: 'bad', note: '', round: 1 })
+    g().logAction({ actor: 'seer', target: 'p2', type: 'info', note: '', round: 1 })
+    const firstId = g().actionLog[0].id
+    g().removeAction(firstId)
+    expect(g().actionLog).toHaveLength(1)
+    expect(g().actionLog[0].actor).toBe('seer')
+  })
+
+  it('nightPrev steps the cursor back, clamped at 0', () => {
+    g().startGame(players, roles)
+    g().startNight()
+    g().nightNext()          // 0 -> 1
+    expect(g().nightCursor).toBe(1)
+    g().nightPrev()          // 1 -> 0
+    expect(g().nightCursor).toBe(0)
+    g().nightPrev()          // clamped
+    expect(g().nightCursor).toBe(0)
+  })
+
   it('eliminate is idempotent; survivors excludes eliminated', () => {
     g().startGame(players, roles)
     g().eliminate('p1')

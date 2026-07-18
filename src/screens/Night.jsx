@@ -7,6 +7,8 @@ import ActionPanel from '../components/ActionPanel.jsx'
 function NightSummary() {
   const round = useGameStore((s) => s.round)
   const endNight = useGameStore((s) => s.endNight)
+  const nightPrev = useGameStore((s) => s.nightPrev)
+  const removeAction = useGameStore((s) => s.removeAction)
   const eliminate = useGameStore((s) => s.eliminate)
   const survivors = useGameStore(useShallow(selectSurvivors))
   const actions = useGameStore(
@@ -23,10 +25,18 @@ function NightSummary() {
           <li key={a.id} className={`type-${a.type}`}>
             {selectRoleById(state, a.actor).name} — {a.type} → {nameOf(a.target)}
             {a.note ? ` (${a.note})` : ''}
+            <button
+              className="action-del"
+              aria-label={`delete action by ${selectRoleById(state, a.actor).name}`}
+              onClick={() => removeAction(a.id)}
+            >
+              ✕
+            </button>
           </li>
         ))}
         {actions.length === 0 && <li>No actions logged.</li>}
       </ol>
+      <button onClick={nightPrev}>← Back to roles</button>
       <h3>Eliminate (admin decision):</h3>
       <ul className="survivor-list">
         {survivors.map((p) => (
@@ -43,6 +53,9 @@ function NightSummary() {
 
 function RoleCall({ role, round }) {
   const nightNext = useGameStore((s) => s.nightNext)
+  const nightPrev = useGameStore((s) => s.nightPrev)
+  const removeAction = useGameStore((s) => s.removeAction)
+  const cursor = useGameStore((s) => s.nightCursor)
   const survivors = useGameStore(useShallow(selectSurvivors))
   const prev = useGameStore(
     useShallow((s) =>
@@ -70,6 +83,7 @@ function RoleCall({ role, round }) {
         )}
         <ActionPanel role={role} round={round} />
         <div className="night-nav">
+          <button onClick={nightPrev} disabled={cursor === 0}>← Back</button>
           <button onClick={nightNext}>Done →</button>
           <button onClick={nightNext}>Skip →</button>
         </div>
@@ -82,6 +96,13 @@ function RoleCall({ role, round }) {
             <li key={a.id} className={`type-${a.type}`}>
               {selectRoleById(state, a.actor).name} — {a.type} → {nameOf(a.target)}
               {a.note ? ` (${a.note})` : ''}
+              <button
+                className="action-del"
+                aria-label={`delete action by ${selectRoleById(state, a.actor).name}`}
+                onClick={() => removeAction(a.id)}
+              >
+                ✕
+              </button>
             </li>
           ))}
         </ul>

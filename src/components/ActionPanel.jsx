@@ -11,6 +11,7 @@ const TYPES = [
 export default function ActionPanel({ role, round }) {
   const survivors = useGameStore(useShallow(selectSurvivors))
   const logAction = useGameStore((s) => s.logAction)
+  const removeAction = useGameStore((s) => s.removeAction)
   const actions = useGameStore(
     useShallow((s) => s.actionLog.filter((a) => a.actor === role.id && a.round === round)),
   )
@@ -65,6 +66,13 @@ export default function ActionPanel({ role, round }) {
           return (
             <li key={a.id} className={`type-${a.type}`}>
               {role.name} — {a.type} → {p?.name}{a.note ? ` (${a.note})` : ''}
+              <button
+                className="action-del"
+                aria-label={`delete action ${a.type} on ${p?.name}`}
+                onClick={() => removeAction(a.id)}
+              >
+                ✕
+              </button>
             </li>
           )
         })}

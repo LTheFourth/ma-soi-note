@@ -48,6 +48,42 @@ describe('Night', () => {
     expect(screen.getByText(/Wolf.*bad.*Bo/)).toBeInTheDocument() // earlier role's action
   })
 
+  it('can go back to the previous role during the night', async () => {
+    const user = userEvent.setup()
+    useGameStore.getState().endGame()
+    useGameStore.getState().startGame(
+      [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }],
+      [
+        { id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, order: 0 },
+        { id: 'seer', name: 'Seer', color: '#06c', gameNightEnabled: true, order: 1 },
+      ],
+    )
+    useGameStore.setState({ assignments: { p1: 'wolf', p2: 'seer' } })
+    useGameStore.getState().startNight()
+    useGameStore.getState().nightNext()   // -> Seer
+    render(<Night />)
+    expect(screen.getByText('Seer')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /back/i }))
+    expect(useGameStore.getState().nightCursor).toBe(0)
+    expect(screen.getByText('Wolf')).toBeInTheDocument()
+  })
+
+  it('can delete a logged action', async () => {
+    const user = userEvent.setup()
+    useGameStore.getState().endGame()
+    useGameStore.getState().startGame(
+      [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }],
+      [{ id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, order: 0 }],
+    )
+    useGameStore.setState({ assignments: { p1: 'wolf', p2: 'villager' } })
+    useGameStore.getState().startNight()
+    useGameStore.getState().logAction({ actor: 'wolf', target: 'p2', type: 'bad', note: '', round: 1 })
+    render(<Night />)
+    expect(useGameStore.getState().actionLog).toHaveLength(1)
+    await user.click(screen.getByRole('button', { name: /delete action/i }))
+    expect(useGameStore.getState().actionLog).toHaveLength(0)
+  })
+
   it('summary can eliminate a player then finish night to day', async () => {
     const user = userEvent.setup()
     render(<Night />)
