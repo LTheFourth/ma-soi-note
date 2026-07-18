@@ -17,7 +17,13 @@ export const useLibraryStore = create(
         set((s) => ({
           roles: [
             ...s.roles,
-            { id: uid(), name: name.trim(), color, gameNightEnabled: true, order: s.roles.length },
+            {
+              id: uid(),
+              name: name.trim(),
+              color,
+              gameNightEnabled: true,
+              order: s.roles.reduce((m, r) => Math.max(m, r.order), -1) + 1,
+            },
           ],
         })),
       updateRole: (id, patch) =>
@@ -27,7 +33,10 @@ export const useLibraryStore = create(
 
       reorderRoles: (orderedIds) =>
         set((s) => ({
-          roles: orderedIds.map((id, i) => ({ ...s.roles.find((r) => r.id === id), order: i })),
+          roles: s.roles.map((r) => {
+            const i = orderedIds.indexOf(r.id)
+            return i === -1 ? r : { ...r, order: i }
+          }),
         })),
     }),
     { name: 'masoi-library' },

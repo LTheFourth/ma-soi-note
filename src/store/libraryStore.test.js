@@ -41,4 +41,41 @@ describe('libraryStore', () => {
     expect(byId[a.id]).toBe(1)
     expect(byId[b.id]).toBe(2)
   })
+
+  it('reorderRoles with a partial id list preserves roles not in the list', () => {
+    useLibraryStore.getState().addRole('A', '#111')
+    useLibraryStore.getState().addRole('B', '#222')
+    useLibraryStore.getState().addRole('C', '#333')
+    const [a, b, c] = useLibraryStore.getState().roles
+    useLibraryStore.getState().reorderRoles([c.id, a.id])
+    const roles = useLibraryStore.getState().roles
+    expect(roles).toHaveLength(3)
+    const byId = Object.fromEntries(roles.map((r) => [r.id, r]))
+    expect(byId[c.id].order).toBe(0)
+    expect(byId[a.id].order).toBe(1)
+    expect(byId[b.id]).toMatchObject({ name: 'B', order: b.order })
+  })
+
+  it('addRole after removeRole yields a unique order (no collision)', () => {
+    useLibraryStore.getState().addRole('A', '#111')
+    useLibraryStore.getState().addRole('B', '#222')
+    useLibraryStore.getState().addRole('C', '#333')
+    const [a, b, c] = useLibraryStore.getState().roles
+    useLibraryStore.getState().removeRole(b.id)
+    useLibraryStore.getState().addRole('D', '#444')
+    const roles = useLibraryStore.getState().roles
+    const d = roles.find((r) => r.name === 'D')
+    const otherOrders = roles.filter((r) => r.id !== d.id).map((r) => r.order)
+    expect(otherOrders).not.toContain(d.order)
+  })
+
+  it('removeRole removes the role by id', () => {
+    useLibraryStore.getState().addRole('A', '#111')
+    useLibraryStore.getState().addRole('B', '#222')
+    const [a, b] = useLibraryStore.getState().roles
+    useLibraryStore.getState().removeRole(a.id)
+    const roles = useLibraryStore.getState().roles
+    expect(roles.map((r) => r.id)).not.toContain(a.id)
+    expect(roles.map((r) => r.id)).toContain(b.id)
+  })
 })
