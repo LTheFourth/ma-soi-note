@@ -79,7 +79,12 @@ New Game ──▶ Setup (assign roles) ──▶ Day ⇄ Night ──▶ End Ga
 
 - Walk each role in `order` (excluding Villager).
 - Show the current role + a side list of game players.
-- Multi-select which players hold this role (Werewolves = several). **Next.**
+- Multi-select which players hold this role (Werewolves = several).
+- **First-night actions (optional):** after selecting holders, the same action
+  panel (Good / Bad / Info + note) is available to log first-night-only actions
+  for this role — e.g. Cupid's link recorded as an Info action with a note like
+  "links PlayerA ♥ PlayerB". Actions logged here use `round = 0`. Skippable.
+  **Next** advances to the next role.
 - After the last role, all leftover players auto-assigned Villager.
 - Game begins → Day.
 
@@ -112,10 +117,10 @@ src/
   store/           zustand + persist (libraryStore, gameStore)
   screens/
     NewGame/       PlayerPicker, RolePicker, RoleOrder (dnd-kit)
-    Setup/         RoleAssign (know-the-roles walker)
+    Setup/         RoleAssign (know-the-roles walker; reuses ActionPanel for first-night actions)
     Day/           PlayerGrid, PlayerCard, HistorySidebar, CardMenu
-    Night/         NightRoleCall, ActionPanel, NightSummary
-  components/      shared: Card, Toggle, ConfirmDialog, TopBar
+    Night/         NightRoleCall, NightSummary
+  components/      shared: Card, Toggle, ConfirmDialog, TopBar, ActionPanel
   lib/             types, id generator
 ```
 
