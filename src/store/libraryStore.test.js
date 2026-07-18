@@ -78,4 +78,17 @@ describe('libraryStore', () => {
     expect(roles.map((r) => r.id)).not.toContain(a.id)
     expect(roles.map((r) => r.id)).toContain(b.id)
   })
+
+  it('reorderRoles gives the listed ids unique contiguous orders 0..n-1', () => {
+    useLibraryStore.getState().addRole('A', '#111')
+    useLibraryStore.getState().addRole('B', '#222')
+    useLibraryStore.getState().addRole('C', '#333')
+    const [a, b, c] = useLibraryStore.getState().roles
+    useLibraryStore.getState().reorderRoles([b.id, c.id, a.id])
+    const orders = [b.id, c.id, a.id].map(
+      (id) => useLibraryStore.getState().roles.find((r) => r.id === id).order,
+    )
+    expect(orders).toEqual([0, 1, 2])           // contiguous, in listed order
+    expect(new Set(orders).size).toBe(3)         // all unique
+  })
 })

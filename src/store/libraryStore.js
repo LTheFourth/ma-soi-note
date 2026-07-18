@@ -31,6 +31,11 @@ export const useLibraryStore = create(
       removeRole: (id) =>
         set((s) => ({ roles: s.roles.filter((r) => r.id !== id) })),
 
+      // `order` is only meaningful WITHIN a set of roles reordered together
+      // (the selected roles for a game). Callers pass the full selected set,
+      // so those roles always get unique contiguous orders 0..n-1. Roles not
+      // in `orderedIds` keep their old `order` and are never compared against
+      // the listed ones (startGame sorts only the selected set).
       reorderRoles: (orderedIds) =>
         set((s) => ({
           roles: s.roles.map((r) => {
