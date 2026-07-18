@@ -5,6 +5,7 @@ import './index.css'
 import './components/components.css'
 import './screens/newgame.css'
 import './screens/setup.css'
+import './screens/day.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

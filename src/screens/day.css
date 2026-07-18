@@ -1,0 +1,12 @@
+.day-layout { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
+.topbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.topbar .spacer { flex: 1; }
+.player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+.player-card {
+  border: 2px solid; border-radius: 8px; padding: 12px; text-align: center; position: relative;
+}
+.player-card .role-tag { font-size: .85em; opacity: .8; }
+.card-menu { position: absolute; inset: auto 0 -8px 0; transform: translateY(100%);
+  background: Canvas; border: 1px solid #8888; border-radius: 6px; padding: 6px; z-index: 5; }
+.history { list-style: none; padding: 0; font-size: .9em; max-height: 70vh; overflow: auto; }
+.history li { padding: 4px 0; border-bottom: 1px solid #8883; }
