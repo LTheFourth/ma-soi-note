@@ -1,0 +1,86 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import {
+  useGameStore, selectNightRoles, selectRoleById,
+  selectPlayersByRole, selectSurvivors, selectAssignedPlayerIds,
+} from './gameStore.js'
+
+const players = [
+  { id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' },
+  { id: 'p3', name: 'Cy' }, { id: 'p4', name: 'Di' },
+]
+const roles = [
+  { id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, order: 1 },
+  { id: 'seer', name: 'Seer', color: '#06c', gameNightEnabled: true, order: 0 },
+  { id: 'cupid', name: 'Cupid', color: '#e0a', gameNightEnabled: false, order: 2 },
+]
+const g = () => useGameStore.getState()
+
+describe('gameStore', () => {
+  beforeEach(() => g().endGame())
+
+  it('startGame snapshots and sorts roles by order', () => {
+    g().startGame(players, roles)
+    expect(g().active).toBe(true)
+    expect(g().phase).toBe('setup')
+    expect(g().roles.map(r => r.id)).toEqual(['seer', 'wolf', 'cupid'])
+    expect(g().setupCursor).toBe(0)
+  })
+
+  it('assignRole maps players and is replaceable', () => {
+    g().startGame(players, roles)
+    g().assignRole('wolf', ['p1', 'p2'])
+    expect(selectPlayersByRole(g(), 'wolf').map(p => p.id)).toEqual(['p1', 'p2'])
+    g().assignRole('wolf', ['p1'])
+    expect(selectPlayersByRole(g(), 'wolf').map(p => p.id)).toEqual(['p1'])
+    expect(selectAssignedPlayerIds(g())).toEqual(['p1'])
+  })
+
+  it('setupNext advances then finalizes leftovers to villager', () => {
+    g().startGame(players, roles)          // roles: seer, wolf, cupid
+    g().assignRole('seer', ['p3'])
+    g().setupNext()                        // -> wolf
+    expect(g().setupCursor).toBe(1)
+    g().assignRole('wolf', ['p1'])
+    g().setupNext()                        // -> cupid
+    g().assignRole('cupid', ['p2'])
+    g().setupNext()                        // past end -> finalize
+    expect(g().phase).toBe('day')
+    // p4 unassigned -> villager
+    expect(selectRoleById(g(), g().assignments['p4']).id).toBe('villager')
+  })
+
+  it('night flow: only gameNightEnabled roles, cursor caps at length', () => {
+    g().startGame(players, roles)
+    expect(selectNightRoles(g()).map(r => r.id)).toEqual(['seer', 'wolf']) // cupid excluded
+    g().startNight()
+    expect(g().phase).toBe('night')
+    expect(g().round).toBe(1)
+    g().nightNext()  // seer -> wolf
+    g().nightNext()  // wolf -> summary (index 2 == length)
+    g().nightNext()  // capped
+    expect(g().nightCursor).toBe(2)
+    g().endNight()
+    expect(g().phase).toBe('day')
+  })
+
+  it('logAction appends with id and round', () => {
+    g().startGame(players, roles)
+    g().logAction({ actor: 'wolf', target: 'p3', type: 'bad', note: '', round: 1 })
+    expect(g().actionLog).toHaveLength(1)
+    expect(g().actionLog[0]).toMatchObject({ actor: 'wolf', target: 'p3', type: 'bad', round: 1 })
+    expect(g().actionLog[0].id).toBeTruthy()
+  })
+
+  it('eliminate is idempotent; survivors excludes eliminated', () => {
+    g().startGame(players, roles)
+    g().eliminate('p1')
+    g().eliminate('p1')
+    expect(g().eliminated).toEqual(['p1'])
+    expect(selectSurvivors(g()).map(p => p.id)).toEqual(['p2', 'p3', 'p4'])
+  })
+
+  it('selectRoleById returns VILLAGER for villager id', () => {
+    g().startGame(players, roles)
+    expect(selectRoleById(g(), 'villager').name).toBe('Villager')
+  })
+})
