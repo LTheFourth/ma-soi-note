@@ -27,6 +27,27 @@ describe('Night', () => {
     expect(screen.getByText(/night summary/i)).toBeInTheDocument()
   })
 
+  it('shows earlier roles\' actions this night in "tonight so far"', () => {
+    // Two game-night roles so there is an "earlier" role.
+    useGameStore.getState().endGame()
+    useGameStore.getState().startGame(
+      [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }],
+      [
+        { id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, order: 0 },
+        { id: 'seer', name: 'Seer', color: '#06c', gameNightEnabled: true, order: 1 },
+      ],
+    )
+    useGameStore.setState({ assignments: { p1: 'wolf', p2: 'seer' } })
+    useGameStore.getState().startNight()   // round 1, cursor 0 (Wolf)
+    useGameStore.getState().logAction({ actor: 'wolf', target: 'p2', type: 'bad', note: '', round: 1 })
+    useGameStore.getState().nightNext()    // cursor 1 (Seer)
+
+    render(<Night />)
+    expect(screen.getByText('Seer')).toBeInTheDocument()          // current role
+    expect(screen.getByText('Tonight so far')).toBeInTheDocument()
+    expect(screen.getByText(/Wolf.*bad.*Bo/)).toBeInTheDocument() // earlier role's action
+  })
+
   it('summary can eliminate a player then finish night to day', async () => {
     const user = userEvent.setup()
     render(<Night />)

@@ -49,6 +49,13 @@ function RoleCall({ role, round }) {
       s.actionLog.filter((a) => a.actor === role.id && a.round === round - 1),
     ),
   )
+  // Actions already logged THIS night by earlier roles (night runs in order,
+  // so any action by another role this round happened before this role's turn).
+  const tonight = useGameStore(
+    useShallow((s) =>
+      s.actionLog.filter((a) => a.round === round && a.actor !== role.id),
+    ),
+  )
   const state = useGameStore.getState()
   const nameOf = (pid) => state.players.find((p) => p.id === pid)?.name ?? '?'
 
@@ -68,6 +75,16 @@ function RoleCall({ role, round }) {
         </div>
       </div>
       <aside>
+        <h3>Tonight so far</h3>
+        <ul className="tonight-list">
+          {tonight.length === 0 && <li className="prev-actions">Nothing yet.</li>}
+          {tonight.map((a) => (
+            <li key={a.id} className={`type-${a.type}`}>
+              {selectRoleById(state, a.actor).name} — {a.type} → {nameOf(a.target)}
+              {a.note ? ` (${a.note})` : ''}
+            </li>
+          ))}
+        </ul>
         <h3>Surviving players</h3>
         <ul className="survivor-list">
           {survivors.map((p) => (
