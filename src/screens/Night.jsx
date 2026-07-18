@@ -3,6 +3,33 @@ import {
   useGameStore, selectNightRoles, selectRoleById, selectSurvivors,
 } from '../store/gameStore.js'
 import ActionPanel from '../components/ActionPanel.jsx'
+import { actionIcon } from '../lib/actions.js'
+
+const navBtn = 'rounded-lg px-3 py-2 text-sm active:scale-95 disabled:opacity-30'
+
+// One log line: RoleName <icon> Target, with an optional delete button.
+function LogLine({ action, onDelete }) {
+  const state = useGameStore.getState()
+  const role = selectRoleById(state, action.actor)
+  const target = state.players.find((p) => p.id === action.target)?.name ?? '?'
+  return (
+    <li className="flex items-center gap-1.5 py-0.5">
+      <span style={{ color: role.color }}>{role.name}</span>
+      <span className="text-base">{actionIcon(action.type)}</span>
+      <span>{target}</span>
+      {action.note ? <span className="text-gray-500">({action.note})</span> : null}
+      {onDelete && (
+        <button
+          aria-label={`delete action by ${role.name}`}
+          onClick={() => onDelete(action.id)}
+          className="ml-auto px-1 text-red-400 hover:text-red-300"
+        >
+          ✕
+        </button>
+      )}
+    </li>
+  )
+}
 
 function NightSummary() {
   const round = useGameStore((s) => s.round)
@@ -15,38 +42,46 @@ function NightSummary() {
     useShallow((s) => s.actionLog.filter((a) => a.round === round)),
   )
   const state = useGameStore.getState()
-  const nameOf = (pid) => state.players.find((p) => p.id === pid)?.name ?? '?'
 
   return (
-    <div>
-      <h2>Night Summary — Round {round}</h2>
-      <ol className="summary-list">
-        {actions.map((a) => (
-          <li key={a.id} className={`type-${a.type}`}>
-            {selectRoleById(state, a.actor).name} — {a.type} → {nameOf(a.target)}
-            {a.note ? ` (${a.note})` : ''}
-            <button
-              className="action-del"
-              aria-label={`delete action by ${selectRoleById(state, a.actor).name}`}
-              onClick={() => removeAction(a.id)}
+    <div className="space-y-4">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+        <h2 className="mb-2 text-lg font-semibold">Night Summary — Round {round}</h2>
+        <ul aria-label="night summary actions" className="text-sm">
+          {actions.map((a) => <LogLine key={a.id} action={a} onDelete={removeAction} />)}
+          {actions.length === 0 && <li className="text-gray-500">No actions logged.</li>}
+        </ul>
+        <button onClick={nightPrev} className={`mt-2 bg-white/10 hover:bg-white/15 ${navBtn}`}>
+          ← Back to roles
+        </button>
+      </div>
+
+      <div>
+        <h3 className="mb-2 font-semibold text-gray-300">Eliminate (admin decision)</h3>
+        <ul className="space-y-1.5">
+          {survivors.map((p) => (
+            <li
+              key={p.id}
+              className="flex items-center justify-between gap-2 rounded-lg bg-black/25 px-3 py-2"
             >
-              ✕
-            </button>
-          </li>
-        ))}
-        {actions.length === 0 && <li>No actions logged.</li>}
-      </ol>
-      <button onClick={nightPrev}>← Back to roles</button>
-      <h3>Eliminate (admin decision):</h3>
-      <ul className="survivor-list">
-        {survivors.map((p) => (
-          <li key={p.id}>
-            {p.name} ({selectRoleById(state, state.assignments[p.id]).name})
-            <button onClick={() => eliminate(p.id)}>Eliminate {p.name}</button>
-          </li>
-        ))}
-      </ul>
-      <button onClick={endNight}>Finish Night → Day ☀️</button>
+              <span>{p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></span>
+              <button
+                onClick={() => eliminate(p.id)}
+                className="rounded-md bg-red-600/80 px-2 py-1 text-sm hover:bg-red-600"
+              >
+                Eliminate {p.name}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <button
+        onClick={endNight}
+        className="w-full rounded-xl bg-indigo-600 px-4 py-3 font-semibold hover:bg-indigo-500 active:scale-[0.98]"
+      >
+        Finish Night → Day ☀️
+      </button>
     </div>
   )
 }
@@ -57,61 +92,54 @@ function RoleCall({ role, round }) {
   const removeAction = useGameStore((s) => s.removeAction)
   const cursor = useGameStore((s) => s.nightCursor)
   const survivors = useGameStore(useShallow(selectSurvivors))
-  const prev = useGameStore(
-    useShallow((s) =>
-      s.actionLog.filter((a) => a.actor === role.id && a.round === round - 1),
-    ),
+  // Everything that happened last night (all roles).
+  const lastNight = useGameStore(
+    useShallow((s) => s.actionLog.filter((a) => a.round === round - 1)),
   )
   // Actions already logged THIS night by earlier roles (night runs in order,
   // so any action by another role this round happened before this role's turn).
   const tonight = useGameStore(
-    useShallow((s) =>
-      s.actionLog.filter((a) => a.round === round && a.actor !== role.id),
-    ),
+    useShallow((s) => s.actionLog.filter((a) => a.round === round && a.actor !== role.id)),
   )
   const state = useGameStore.getState()
-  const nameOf = (pid) => state.players.find((p) => p.id === pid)?.name ?? '?'
 
   return (
-    <div className="night-layout">
+    <div className="grid gap-4 md:grid-cols-[1fr_260px]">
       <div>
-        <h2 className="night-role" style={{ color: role.color }}>{role.name}</h2>
-        {prev.length > 0 && (
-          <p className="prev-actions">
-            Last night: {prev.map((a) => `${a.type}→${nameOf(a.target)}`).join(', ')}
-          </p>
-        )}
+        <h2 className="mb-2 text-2xl font-bold" style={{ color: role.color }}>{role.name}</h2>
         <ActionPanel role={role} round={round} />
-        <div className="night-nav">
-          <button onClick={nightPrev} disabled={cursor === 0}>← Back</button>
-          <button onClick={nightNext}>Done →</button>
-          <button onClick={nightNext}>Skip →</button>
+        <div className="mt-3 flex gap-2">
+          <button onClick={nightPrev} disabled={cursor === 0} className={`bg-white/10 hover:bg-white/15 ${navBtn}`}>← Back</button>
+          <button onClick={nightNext} className={`bg-indigo-600 hover:bg-indigo-500 ${navBtn}`}>Done →</button>
+          <button onClick={nightNext} className={`bg-white/10 hover:bg-white/15 ${navBtn}`}>Skip →</button>
         </div>
       </div>
-      <aside>
-        <h3>Tonight so far</h3>
-        <ul className="tonight-list">
-          {tonight.length === 0 && <li className="prev-actions">Nothing yet.</li>}
-          {tonight.map((a) => (
-            <li key={a.id} className={`type-${a.type}`}>
-              {selectRoleById(state, a.actor).name} — {a.type} → {nameOf(a.target)}
-              {a.note ? ` (${a.note})` : ''}
-              <button
-                className="action-del"
-                aria-label={`delete action by ${selectRoleById(state, a.actor).name}`}
-                onClick={() => removeAction(a.id)}
-              >
-                ✕
-              </button>
-            </li>
-          ))}
-        </ul>
-        <h3>Surviving players</h3>
-        <ul className="survivor-list">
-          {survivors.map((p) => (
-            <li key={p.id}>{p.name} ({selectRoleById(state, state.assignments[p.id]).name})</li>
-          ))}
-        </ul>
+
+      <aside className="space-y-4 text-sm">
+        {round > 1 && (
+          <div>
+            <h3 className="mb-1 font-semibold text-gray-300">Last night</h3>
+            <ul aria-label="last night" className="rounded-lg bg-black/20 p-2">
+              {lastNight.length === 0 && <li className="text-gray-500">Nothing.</li>}
+              {lastNight.map((a) => <LogLine key={a.id} action={a} />)}
+            </ul>
+          </div>
+        )}
+        <div>
+          <h3 className="mb-1 font-semibold text-gray-300">Tonight so far</h3>
+          <ul aria-label="tonight so far" className="rounded-lg bg-black/20 p-2">
+            {tonight.length === 0 && <li className="text-gray-500">Nothing yet.</li>}
+            {tonight.map((a) => <LogLine key={a.id} action={a} onDelete={removeAction} />)}
+          </ul>
+        </div>
+        <div>
+          <h3 className="mb-1 font-semibold text-gray-300">Surviving players</h3>
+          <ul className="space-y-0.5">
+            {survivors.map((p) => (
+              <li key={p.id}>{p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></li>
+            ))}
+          </ul>
+        </div>
       </aside>
     </div>
   )
@@ -124,8 +152,8 @@ export default function Night() {
   const atSummary = cursor >= nightRoles.length
 
   return (
-    <div className="app">
-      <h1>🌙 Night — Round {round}</h1>
+    <div className="mx-auto max-w-4xl p-4">
+      <h1 className="mb-4 text-xl font-bold">🌙 Night — Round {round}</h1>
       {atSummary ? <NightSummary /> : <RoleCall role={nightRoles[cursor]} round={round} />}
     </div>
   )

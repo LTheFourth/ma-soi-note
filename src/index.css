@@ -1,10 +1,26 @@
-:root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-* { box-sizing: border-box; }
-body { margin: 0; }
-button { font: inherit; cursor: pointer; }
-.app { max-width: 1100px; margin: 0 auto; padding: 16px; }
-.eliminated { filter: grayscale(1) opacity(0.5); position: relative; }
+@import "tailwindcss";
+
+/* Dark, mobile-first moderator app. */
+@layer base {
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body, #root { height: 100%; }
+  body {
+    margin: 0;
+    background: #0b0f17;
+    color: #e5e7eb;
+    font-family: system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; cursor: pointer; }
+}
+
+/* Eliminated player card: grayscale + red slash overlay. */
+.eliminated { filter: grayscale(1) opacity(0.55); position: relative; }
 .eliminated::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to bottom right, transparent 47%, red 48%, red 52%, transparent 53%);
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom right, transparent 47%, #ef4444 48%, #ef4444 52%, transparent 53%);
+  pointer-events: none;
 }

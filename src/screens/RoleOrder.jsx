@@ -7,9 +7,20 @@ function Row({ role, onToggle }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: role.id })
   const style = { transform: CSS.Transform.toString(transform), transition }
   return (
-    <div ref={setNodeRef} style={style} className="role-order-item">
-      <span className="drag-handle" {...attributes} {...listeners} aria-label={`drag ${role.name}`}>⠿</span>
-      <span style={{ color: role.color, fontWeight: 600, flex: 1 }}>{role.name}</span>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="mb-1.5 flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-2"
+    >
+      <span
+        className="cursor-grab touch-none px-1 text-gray-500"
+        {...attributes}
+        {...listeners}
+        aria-label={`drag ${role.name}`}
+      >
+        ⠿
+      </span>
+      <span className="flex-1 font-semibold" style={{ color: role.color }}>{role.name}</span>
       <Toggle
         checked={role.gameNightEnabled}
         onChange={(v) => onToggle(role.id, v)}

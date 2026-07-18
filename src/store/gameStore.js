@@ -53,6 +53,11 @@ export const useGameStore = create(
       removeAction: (id) =>
         set((s) => ({ actionLog: s.actionLog.filter((a) => a.id !== id) })),
 
+      updateAction: (id, patch) =>
+        set((s) => ({
+          actionLog: s.actionLog.map((a) => (a.id === id ? { ...a, ...patch } : a)),
+        })),
+
       startNight: () =>
         set((s) => ({ phase: 'night', round: s.round + 1, nightCursor: 0 })),
 

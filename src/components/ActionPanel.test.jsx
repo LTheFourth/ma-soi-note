@@ -13,16 +13,30 @@ describe('ActionPanel', () => {
     useGameStore.getState().startGame(players, roles)
   })
 
-  it('logs an action with selected target and type', async () => {
+  it('logs an action when tapping a type icon on a player', async () => {
     const user = userEvent.setup()
     render(<ActionPanel role={roles[0]} round={1} />)
-    await user.selectOptions(screen.getByLabelText(/target/i), 'p2')
-    await user.click(screen.getByRole('button', { name: /bad/i }))
-    await user.click(screen.getByRole('button', { name: /add action/i }))
+    await user.click(screen.getByRole('button', { name: /Kill Bo/i }))
     const log = useGameStore.getState().actionLog
     expect(log).toHaveLength(1)
     expect(log[0]).toMatchObject({ actor: 'wolf', target: 'p2', type: 'bad', round: 1 })
-    // shows in logged list
-    expect(screen.getByText(/Bo/)).toBeInTheDocument()
+  })
+
+  it('cycles the type of a logged action', async () => {
+    const user = userEvent.setup()
+    render(<ActionPanel role={roles[0]} round={1} />)
+    await user.click(screen.getByRole('button', { name: /Heal Al/i })) // logs type good
+    expect(useGameStore.getState().actionLog[0].type).toBe('good')
+    await user.click(screen.getByRole('button', { name: /change action type/i }))
+    expect(useGameStore.getState().actionLog[0].type).toBe('bad') // good -> bad
+  })
+
+  it('deletes a logged action', async () => {
+    const user = userEvent.setup()
+    render(<ActionPanel role={roles[0]} round={1} />)
+    await user.click(screen.getByRole('button', { name: /Kill Bo/i }))
+    expect(useGameStore.getState().actionLog).toHaveLength(1)
+    await user.click(screen.getByRole('button', { name: /delete action/i }))
+    expect(useGameStore.getState().actionLog).toHaveLength(0)
   })
 })

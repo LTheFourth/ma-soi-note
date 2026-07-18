@@ -81,6 +81,14 @@ describe('gameStore', () => {
     expect(g().actionLog[0].actor).toBe('seer')
   })
 
+  it('updateAction patches an action in place', () => {
+    g().startGame(players, roles)
+    g().logAction({ actor: 'wolf', target: 'p3', type: 'bad', note: '', round: 1 })
+    const id = g().actionLog[0].id
+    g().updateAction(id, { type: 'good', target: 'p1' })
+    expect(g().actionLog[0]).toMatchObject({ id, type: 'good', target: 'p1', actor: 'wolf' })
+  })
+
   it('nightPrev steps the cursor back, clamped at 0', () => {
     g().startGame(players, roles)
     g().startNight()

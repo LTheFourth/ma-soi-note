@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, beforeEach } from 'vitest'
 import Night from './Night.jsx'
@@ -44,8 +44,9 @@ describe('Night', () => {
 
     render(<Night />)
     expect(screen.getByText('Seer')).toBeInTheDocument()          // current role
-    expect(screen.getByText('Tonight so far')).toBeInTheDocument()
-    expect(screen.getByText(/Wolf.*bad.*Bo/)).toBeInTheDocument() // earlier role's action
+    const tonightList = screen.getByRole('list', { name: /tonight so far/i })
+    expect(within(tonightList).getByText('Wolf')).toBeInTheDocument()  // earlier role
+    expect(within(tonightList).getByText('Bo')).toBeInTheDocument()    // its target
   })
 
   it('can go back to the previous role during the night', async () => {
