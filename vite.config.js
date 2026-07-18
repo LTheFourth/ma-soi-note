@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/masoi/',
+  base: '/ma-soi-note/',
   plugins: [
     react(),
     VitePWA({
@@ -12,8 +12,8 @@ export default defineConfig({
       manifest: {
         name: 'Werewolf Admin',
         short_name: 'Werewolf',
-        start_url: '/masoi/',
-        scope: '/masoi/',
+        start_url: '/ma-soi-note/',
+        scope: '/ma-soi-note/',
         display: 'standalone',
         background_color: '#111111',
         theme_color: '#111111',

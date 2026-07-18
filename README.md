@@ -18,7 +18,7 @@ npm run build     # production build (dist/)
 
 Push to `main` → GitHub Action builds and deploys to GitHub Pages.
 Enable Pages → Source: "GitHub Actions" in the repo settings once.
-The app is served at `/masoi/` (see `base` in `vite.config.js`); rename the
+The app is served at `/ma-soi-note/` (see `base` in `vite.config.js`); rename the
 repo or update `base` if you host it elsewhere.
 
 ## Data
