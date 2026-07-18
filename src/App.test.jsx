@@ -1,10 +1,12 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import App from './App.jsx'
+import { useGameStore } from './store/gameStore.js'
 
 describe('App', () => {
-  it('renders without crashing', () => {
+  beforeEach(() => useGameStore.getState().endGame())
+  it('shows New Game screen when no active game', () => {
     render(<App />)
-    expect(screen.getByText(/werewolf admin/i)).toBeInTheDocument()
+    expect(screen.getByText(/new game/i)).toBeInTheDocument()
   })
 })
