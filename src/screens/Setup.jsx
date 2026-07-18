@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useGameStore, selectPlayersByRole } from '../store/gameStore.js'
+import { useGameStore } from '../store/gameStore.js'
 import ActionPanel from '../components/ActionPanel.jsx'
 
 export default function Setup() {

@@ -18,7 +18,7 @@ const initial = {
 
 export const useGameStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...initial,
 
       startGame: (players, roles) =>
