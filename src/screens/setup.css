@@ -1,0 +1,5 @@
+.setup-layout { display: grid; grid-template-columns: 1fr 260px; gap: 16px; }
+.player-select-list { list-style: none; padding: 0; }
+.player-select-list li { margin: 4px 0; }
+.role-heading { font-size: 1.4em; }
+.setup-progress { color: #888; }
