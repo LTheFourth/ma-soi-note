@@ -74,6 +74,16 @@ describe('NewGame', () => {
     expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('a preset color swatch sets the new role color', async () => {
+    const user = userEvent.setup()
+    render(<NewGame />)
+    await user.type(screen.getByPlaceholderText('new role'), 'Guard')
+    await user.click(screen.getByRole('button', { name: /color blue/i }))
+    await user.click(screen.getAllByRole('button', { name: 'Add' })[1]) // roles Add
+    const guard = useLibraryStore.getState().roles.find((r) => r.name === 'Guard')
+    expect(guard.color).toBe('#3b82f6')
+  })
+
   it('Select-all selects every player', async () => {
     const user = userEvent.setup()
     render(<NewGame />)

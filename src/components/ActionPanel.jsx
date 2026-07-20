@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, selectSurvivors, selectRoleById } from '../store/gameStore.js'
 import { ACTION_TYPES, actionIcon, nextActionType, roleActions } from '../lib/actions.js'
 import LinkDot from './LinkDot.jsx'
+import LinkTag from './LinkTag.jsx'
 
 // Quick action logger: tap an icon on a player to log an action for `role`.
 // Logged actions can be re-typed (tap icon), retargeted (tap name), or deleted.
@@ -47,9 +48,12 @@ export default function ActionPanel({ role, round }) {
             key={p.id}
             className="flex items-center justify-between gap-2 rounded-lg bg-black/25 px-3 py-2"
           >
-            <span className="flex min-w-0 items-center gap-1 truncate">
-              {p.name} <LinkDot pid={p.id} />
-              <span className="text-xs text-gray-400">({roleNameOf(p.id)})</span>
+            <span className="flex min-w-0 flex-col">
+              <span className="flex items-center gap-1 truncate">
+                {p.name} <LinkDot pid={p.id} />
+                <span className="text-xs text-gray-400">({roleNameOf(p.id)})</span>
+              </span>
+              <LinkTag pid={p.id} />
             </span>
             <span className="flex shrink-0 gap-1">
               {allowed.map((t) => (

@@ -120,6 +120,19 @@ describe('Night', () => {
     expect(screen.queryByRole('button', { name: /Kill/i })).toBeNull() // no ActionPanel
   })
 
+  it('shows "linked with" partner text for linked players', () => {
+    useGameStore.getState().endGame()
+    useGameStore.getState().startGame(
+      [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }],
+      [{ id: 'cupid', name: 'Cupid', color: '#e0a', callTiming: 'every', actions: ['link'], order: 0 }],
+    )
+    useGameStore.setState({ assignments: { p1: 'cupid', p2: 'villager' } })
+    useGameStore.getState().startNight()
+    useGameStore.getState().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1 })
+    render(<Night />)
+    expect(screen.getAllByText(/linked with/i).length).toBeGreaterThan(0)
+  })
+
   it('summary can eliminate a player then finish night to day', async () => {
     const user = userEvent.setup()
     render(<Night />)

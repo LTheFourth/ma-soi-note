@@ -4,6 +4,7 @@ import TopBar from '../components/TopBar.jsx'
 import HistorySidebar from '../components/HistorySidebar.jsx'
 import DayTimer from '../components/DayTimer.jsx'
 import LinkDot from '../components/LinkDot.jsx'
+import LinkTag from '../components/LinkTag.jsx'
 
 export default function Day() {
   const players = useGameStore((s) => s.players)
@@ -40,6 +41,7 @@ export default function Day() {
               >
                 <div className="font-medium">{p.name} <LinkDot pid={p.id} /></div>
                 <div className="text-xs text-gray-400">{role.name}</div>
+                <div className="mt-0.5"><LinkTag pid={p.id} /></div>
                 {menuFor === p.id && !dead && (
                   <div
                     className="absolute inset-x-2 top-full z-10 mt-1 rounded-lg border border-white/10 bg-[#141a24] p-1 shadow-lg"

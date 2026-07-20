@@ -123,6 +123,15 @@ export const linkColorOf = (s, pid) => {
   return e ? e.color : null
 }
 
+// Names of the other players in this player's link group.
+export const linkPartnersOf = (s, pid) => {
+  const e = s.actionLog.find((a) => a.type === 'link' && a.targets?.includes(pid))
+  if (!e) return []
+  return e.targets
+    .filter((id) => id !== pid)
+    .map((id) => s.players.find((p) => p.id === id)?.name ?? '?')
+}
+
 export const selectNightRoles = (s) =>
   s.roles.filter((r) => {
     const t = roleTiming(r)

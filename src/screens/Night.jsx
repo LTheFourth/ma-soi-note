@@ -5,6 +5,7 @@ import {
 } from '../store/gameStore.js'
 import ActionPanel from '../components/ActionPanel.jsx'
 import LinkDot from '../components/LinkDot.jsx'
+import LinkTag from '../components/LinkTag.jsx'
 import { actionIcon } from '../lib/actions.js'
 
 const navBtn = 'rounded-lg px-3 py-2 text-sm active:scale-95 disabled:opacity-30'
@@ -94,7 +95,10 @@ function NightSummary() {
               key={p.id}
               className="flex items-center justify-between gap-2 rounded-lg bg-black/25 px-3 py-2"
             >
-              <span>{p.name} <LinkDot pid={p.id} /> <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></span>
+              <span>
+                {p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span>{' '}
+                <LinkTag pid={p.id} />
+              </span>
               <button
                 onClick={() => setElimFor(p.id)}
                 className="rounded-md bg-red-600/80 px-2 py-1 text-sm hover:bg-red-600"
@@ -223,7 +227,10 @@ function RoleCall({ role, round }) {
           <h3 className="mb-1 font-semibold text-gray-300">Surviving players</h3>
           <ul className="space-y-0.5">
             {survivors.map((p) => (
-              <li key={p.id}>{p.name} <LinkDot pid={p.id} /> <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></li>
+              <li key={p.id}>
+                {p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span>{' '}
+                <LinkTag pid={p.id} />
+              </li>
             ))}
           </ul>
         </div>

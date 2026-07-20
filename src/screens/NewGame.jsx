@@ -5,6 +5,13 @@ import RoleOrder from './RoleOrder.jsx'
 import { roleActions, roleTiming } from '../lib/actions.js'
 import { APP_VERSION } from '../version.js'
 
+const PRESET_COLORS = [
+  { name: 'red', value: '#ef4444' },
+  { name: 'green', value: '#22c55e' },
+  { name: 'blue', value: '#3b82f6' },
+  { name: 'orange', value: '#f97316' },
+]
+
 const inputCls =
   'rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm placeholder-gray-500 focus:border-indigo-500 focus:outline-none'
 const addBtnCls = 'rounded-lg bg-white/10 px-3 py-2 text-sm hover:bg-white/15 active:scale-95'
@@ -182,7 +189,7 @@ export default function NewGame() {
             />
           ))}
         </div>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
           <input
             className={inputCls}
             placeholder="new role"
@@ -190,6 +197,17 @@ export default function NewGame() {
             onChange={(e) => setRName(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && rName.trim()) { addRole(rName, rColor); setRName('') } }}
           />
+          <div className="flex gap-1">
+            {PRESET_COLORS.map((c) => (
+              <button
+                key={c.value}
+                aria-label={`color ${c.name}`}
+                onClick={() => setRColor(c.value)}
+                className={`h-8 w-8 rounded-md border-2 ${rColor === c.value ? 'border-white' : 'border-white/20'}`}
+                style={{ background: c.value }}
+              />
+            ))}
+          </div>
           <input
             type="color"
             value={rColor}
