@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { uid } from '../lib/id.js'
 import { VILLAGER } from '../lib/roles.js'
 import { roleTiming } from '../lib/actions.js'
+import { useLibraryStore } from './libraryStore.js'
 
 const initial = {
   active: false,
@@ -19,7 +20,7 @@ const initial = {
 
 export const useGameStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initial,
 
       startGame: (players, roles) =>
@@ -96,7 +97,16 @@ export const useGameStore = create(
               },
         ),
 
-      endGame: () => set({ ...initial }),
+      endGame: () => {
+        const s = get()
+        if (s.active && s.players.length) {
+          useLibraryStore.getState().saveLastGame(
+            s.players.map((p) => p.id),
+            s.roles.map((r) => r.id),
+          )
+        }
+        set({ ...initial })
+      },
     }),
     { name: 'masoi-game' },
   ),

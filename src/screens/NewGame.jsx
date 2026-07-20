@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLibraryStore } from '../store/libraryStore.js'
 import { useGameStore } from '../store/gameStore.js'
 import RoleOrder from './RoleOrder.jsx'
-import { roleActions } from '../lib/actions.js'
+import { roleActions, roleTiming } from '../lib/actions.js'
 import { APP_VERSION } from '../version.js'
 
 const inputCls =
@@ -10,15 +10,20 @@ const inputCls =
 const addBtnCls = 'rounded-lg bg-white/10 px-3 py-2 text-sm hover:bg-white/15 active:scale-95'
 
 export default function NewGame() {
-  const { players, roles, addPlayer, removePlayer, addRole, removeRole, updateRole, reorderRoles } =
-    useLibraryStore()
+  const {
+    players, roles, lastGame, roleSets,
+    addPlayer, removePlayer, addRole, removeRole, updateRole, reorderRoles,
+    saveRoleSet, deleteRoleSet,
+  } = useLibraryStore()
   const startGame = useGameStore((s) => s.startGame)
 
-  const [selPlayers, setSelPlayers] = useState(() => new Set())
-  const [selRoles, setSelRoles] = useState(() => new Set())
+  // Pre-fill from the last game played (ids that no longer exist are ignored later).
+  const [selPlayers, setSelPlayers] = useState(() => new Set(lastGame?.playerIds ?? []))
+  const [selRoles, setSelRoles] = useState(() => new Set(lastGame?.roleIds ?? []))
   const [pName, setPName] = useState('')
   const [rName, setRName] = useState('')
   const [rColor, setRColor] = useState('#4488cc')
+  const [setName, setSetName] = useState('')
 
   const toggle = (set, setter) => (id) => {
     const next = new Set(set)
@@ -38,6 +43,37 @@ export default function NewGame() {
   const orderedSelectedRoles = roles
     .filter((r) => selRoles.has(r.id))
     .sort((a, b) => a.order - b.order)
+
+  const saveCurrentSet = () => {
+    if (!setName.trim() || selRoles.size === 0) return
+    const items = roles
+      .filter((r) => selRoles.has(r.id))
+      .map((r) => ({
+        roleId: r.id,
+        order: r.order,
+        callTiming: roleTiming(r),
+        actions: roleActions(r),
+        canEliminate: !!r.canEliminate,
+      }))
+    saveRoleSet(setName, items)
+    setSetName('')
+  }
+
+  const loadSet = (rs) => {
+    const ids = []
+    rs.items.forEach((it) => {
+      if (roles.some((r) => r.id === it.roleId)) {
+        updateRole(it.roleId, {
+          order: it.order,
+          callTiming: it.callTiming,
+          actions: it.actions,
+          canEliminate: it.canEliminate,
+        })
+        ids.push(it.roleId)
+      }
+    })
+    setSelRoles(new Set(ids))
+  }
 
   const canStart = selPlayers.size > 0 && selRoles.size > 0
 
@@ -157,6 +193,43 @@ export default function NewGame() {
           />
         </section>
       )}
+
+      <section className="mb-6">
+        <h2 className="mb-2 font-semibold text-gray-300">Role sets</h2>
+        {roleSets.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-2">
+            {roleSets.map((rs) => (
+              <span key={rs.id} className="inline-flex overflow-hidden rounded-full border border-white/15">
+                <button
+                  onClick={() => loadSet(rs)}
+                  className="px-3 py-1.5 text-sm hover:bg-white/10"
+                >
+                  {rs.name} ({rs.items.length})
+                </button>
+                <button
+                  aria-label={`delete set ${rs.name}`}
+                  onClick={() => deleteRoleSet(rs.id)}
+                  className="border-l border-white/15 px-2 text-red-400 hover:bg-red-500/20"
+                >
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <input
+            className={inputCls}
+            placeholder="save selected roles as set…"
+            value={setName}
+            onChange={(e) => setSetName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') saveCurrentSet() }}
+          />
+          <button className={addBtnCls} disabled={selRoles.size === 0} onClick={saveCurrentSet}>
+            Save set
+          </button>
+        </div>
+      </section>
 
       <button
         className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-lg font-semibold hover:bg-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"

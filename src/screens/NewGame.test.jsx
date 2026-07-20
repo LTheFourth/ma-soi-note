@@ -7,8 +7,11 @@ import { useGameStore } from '../store/gameStore.js'
 
 describe('NewGame', () => {
   beforeEach(() => {
-    useLibraryStore.setState({ players: [], roles: [] })
+    useLibraryStore.setState({
+      players: [], roles: [], roleSets: [], lastGame: { playerIds: [], roleIds: [] },
+    })
     useGameStore.getState().endGame()
+    useLibraryStore.setState({ lastGame: { playerIds: [], roleIds: [] } }) // endGame may have written
     useLibraryStore.getState().addPlayer('Al')
     useLibraryStore.getState().addPlayer('Bo')
     useLibraryStore.getState().addRole('Wolf', '#c00')
@@ -42,6 +45,29 @@ describe('NewGame', () => {
     expect(screen.queryByRole('button', { name: 'Wolf' })).toBeNull()
     // no roles selected -> night call order section gone, start disabled
     expect(screen.getByRole('button', { name: /start game/i })).toBeDisabled()
+  })
+
+  it('saves selected roles as a set and loads it back', async () => {
+    const user = userEvent.setup()
+    render(<NewGame />)
+    await user.click(screen.getByRole('button', { name: 'Wolf' })) // select
+    await user.type(screen.getByPlaceholderText(/save selected roles/i), 'MySet')
+    await user.click(screen.getByRole('button', { name: /save set/i }))
+    expect(useLibraryStore.getState().roleSets).toHaveLength(1)
+
+    await user.click(screen.getByRole('button', { name: 'Wolf' })) // deselect
+    expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'false')
+    await user.click(screen.getByRole('button', { name: /^MySet/ })) // load set chip
+    expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('pre-selects the last game players and roles', () => {
+    const al = useLibraryStore.getState().players.find((p) => p.name === 'Al')
+    const wolf = useLibraryStore.getState().roles[0]
+    useLibraryStore.getState().saveLastGame([al.id], [wolf.id])
+    render(<NewGame />)
+    expect(screen.getByRole('button', { name: 'Al' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('starting a game activates the game store in setup phase', async () => {

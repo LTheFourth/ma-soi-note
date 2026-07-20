@@ -7,6 +7,8 @@ export const useLibraryStore = create(
     (set) => ({
       players: [],
       roles: [],
+      lastGame: { playerIds: [], roleIds: [] },
+      roleSets: [],
 
       addPlayer: (name) =>
         set((s) => ({ players: [...s.players, { id: uid(), name: name.trim() }] })),
@@ -45,6 +47,16 @@ export const useLibraryStore = create(
             return i === -1 ? r : { ...r, order: i }
           }),
         })),
+
+      // Remember the last game's selected players + roles (to pre-fill New Game).
+      saveLastGame: (playerIds, roleIds) => set({ lastGame: { playerIds, roleIds } }),
+
+      // A named role-set preset. items snapshot each role's config at save time:
+      // { roleId, order, callTiming, actions, canEliminate }.
+      saveRoleSet: (name, items) =>
+        set((s) => ({ roleSets: [...s.roleSets, { id: uid(), name: name.trim(), items }] })),
+      deleteRoleSet: (id) =>
+        set((s) => ({ roleSets: s.roleSets.filter((rs) => rs.id !== id) })),
     }),
     { name: 'masoi-library' },
   ),

@@ -3,6 +3,7 @@ import {
   useGameStore, selectNightRoles, selectRoleById,
   selectPlayersByRole, selectSurvivors, selectAssignedPlayerIds, linkColorOf,
 } from './gameStore.js'
+import { useLibraryStore } from './libraryStore.js'
 
 const players = [
   { id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' },
@@ -149,5 +150,13 @@ describe('gameStore', () => {
   it('selectRoleById returns VILLAGER for villager id', () => {
     g().startGame(players, roles)
     expect(selectRoleById(g(), 'villager').name).toBe('Villager')
+  })
+
+  it('endGame remembers the last game in the library', () => {
+    useLibraryStore.getState().saveLastGame([], [])
+    g().startGame(players, roles)
+    g().endGame()
+    expect(useLibraryStore.getState().lastGame.playerIds).toEqual(['p1', 'p2', 'p3', 'p4'])
+    expect(useLibraryStore.getState().lastGame.roleIds).toContain('wolf')
   })
 })

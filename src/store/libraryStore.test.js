@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useLibraryStore } from './libraryStore.js'
 
-const reset = () => useLibraryStore.setState({ players: [], roles: [] })
+const reset = () =>
+  useLibraryStore.setState({
+    players: [], roles: [], roleSets: [], lastGame: { playerIds: [], roleIds: [] },
+  })
 
 describe('libraryStore', () => {
   beforeEach(reset)
@@ -91,5 +94,20 @@ describe('libraryStore', () => {
     )
     expect(orders).toEqual([0, 1, 2])           // contiguous, in listed order
     expect(new Set(orders).size).toBe(3)         // all unique
+  })
+
+  it('saveLastGame stores selected ids', () => {
+    useLibraryStore.getState().saveLastGame(['p1', 'p2'], ['r1'])
+    expect(useLibraryStore.getState().lastGame).toEqual({ playerIds: ['p1', 'p2'], roleIds: ['r1'] })
+  })
+
+  it('saveRoleSet and deleteRoleSet manage presets', () => {
+    const items = [{ roleId: 'r1', order: 0, callTiming: 'every', actions: ['bad'], canEliminate: true }]
+    useLibraryStore.getState().saveRoleSet('Classic', items)
+    const sets = useLibraryStore.getState().roleSets
+    expect(sets).toHaveLength(1)
+    expect(sets[0]).toMatchObject({ name: 'Classic', items })
+    useLibraryStore.getState().deleteRoleSet(sets[0].id)
+    expect(useLibraryStore.getState().roleSets).toHaveLength(0)
   })
 })
