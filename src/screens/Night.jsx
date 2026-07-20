@@ -4,7 +4,7 @@ import {
   useGameStore, selectNightRoles, selectRoleById, selectSurvivors,
 } from '../store/gameStore.js'
 import ActionPanel from '../components/ActionPanel.jsx'
-import { actionIcon } from '../lib/actions.js'
+import { actionIcon, roleActions } from '../lib/actions.js'
 
 const navBtn = 'rounded-lg px-3 py-2 text-sm active:scale-95 disabled:opacity-30'
 
@@ -110,7 +110,7 @@ function NightSummary() {
               Eliminate <strong>{state.players.find((p) => p.id === elimFor)?.name}</strong> — killed by which role?
             </p>
             <div className="flex flex-col gap-2">
-              {state.roles.filter((r) => r.canKill).map((r) => (
+              {state.roles.filter((r) => roleActions(r).includes('bad')).map((r) => (
                 <button
                   key={r.id}
                   onClick={() => { eliminate(elimFor, r.name); setElimFor(null) }}

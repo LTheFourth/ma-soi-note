@@ -63,6 +63,18 @@ describe('gameStore', () => {
     expect(g().phase).toBe('day')
   })
 
+  it('first-night roles are called only on round 1', () => {
+    const rs = [
+      { id: 'wolf', name: 'Wolf', color: '#c00', callTiming: 'every', order: 0 },
+      { id: 'cupid', name: 'Cupid', color: '#e0a', callTiming: 'first', order: 1 },
+    ]
+    g().startGame(players, rs)
+    g().startNight() // round 1
+    expect(selectNightRoles(g()).map((r) => r.id)).toEqual(['wolf', 'cupid'])
+    g().startNight() // round 2
+    expect(selectNightRoles(g()).map((r) => r.id)).toEqual(['wolf'])
+  })
+
   it('logAction appends with id and round', () => {
     g().startGame(players, roles)
     g().logAction({ actor: 'wolf', target: 'p3', type: 'bad', note: '', round: 1 })

@@ -25,10 +25,18 @@ describe('ActionPanel', () => {
   it('cycles the type of a logged action', async () => {
     const user = userEvent.setup()
     render(<ActionPanel role={roles[0]} round={1} />)
-    await user.click(screen.getByRole('button', { name: /Heal Al/i })) // logs type good
+    await user.click(screen.getByRole('button', { name: /Save Al/i })) // logs type good
     expect(useGameStore.getState().actionLog[0].type).toBe('good')
     await user.click(screen.getByRole('button', { name: /change action type/i }))
     expect(useGameStore.getState().actionLog[0].type).toBe('bad') // good -> bad
+  })
+
+  it('shows only the role\'s allowed action icons', () => {
+    const seer = { id: 'seer', name: 'Seer', color: '#06c', actions: ['info'] }
+    render(<ActionPanel role={seer} round={1} />)
+    expect(screen.getByRole('button', { name: /Info Al/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Kill Al/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Save Al/i })).toBeNull()
   })
 
   it('deletes a logged action', async () => {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLibraryStore } from '../store/libraryStore.js'
 import { useGameStore } from '../store/gameStore.js'
 import RoleOrder from './RoleOrder.jsx'
+import { roleActions } from '../lib/actions.js'
 import { APP_VERSION } from '../version.js'
 
 const inputCls =
@@ -145,8 +146,13 @@ export default function NewGame() {
           <RoleOrder
             roles={orderedSelectedRoles}
             onReorder={reorderRoles}
-            onToggle={(id, v) => updateRole(id, { gameNightEnabled: v })}
-            onToggleKill={(id, v) => updateRole(id, { canKill: v })}
+            onSetTiming={(id, t) => updateRole(id, { callTiming: t })}
+            onToggleAction={(id, key, on) => {
+              const role = roles.find((r) => r.id === id)
+              const cur = roleActions(role)
+              const next = on ? [...new Set([...cur, key])] : cur.filter((k) => k !== key)
+              updateRole(id, { actions: next })
+            }}
           />
         </section>
       )}

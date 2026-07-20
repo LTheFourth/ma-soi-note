@@ -15,19 +15,20 @@ describe('libraryStore', () => {
     expect(useLibraryStore.getState().players.map(p => p.name)).toEqual(['Bob'])
   })
 
-  it('adds a role with defaults (order by index, gameNightEnabled true)', () => {
+  it('adds a role with defaults (order by index, every night, default actions)', () => {
     useLibraryStore.getState().addRole('Wolf', '#c00')
     useLibraryStore.getState().addRole('Seer', '#06c')
     const roles = useLibraryStore.getState().roles
-    expect(roles[0]).toMatchObject({ name: 'Wolf', color: '#c00', order: 0, gameNightEnabled: true })
+    expect(roles[0]).toMatchObject({ name: 'Wolf', color: '#c00', order: 0, callTiming: 'every' })
+    expect(roles[0].actions).toEqual(['bad', 'good', 'info'])
     expect(roles[1].order).toBe(1)
   })
 
   it('updateRole patches fields', () => {
     useLibraryStore.getState().addRole('Cupid', '#e0a')
     const id = useLibraryStore.getState().roles[0].id
-    useLibraryStore.getState().updateRole(id, { gameNightEnabled: false })
-    expect(useLibraryStore.getState().roles[0].gameNightEnabled).toBe(false)
+    useLibraryStore.getState().updateRole(id, { callTiming: 'first' })
+    expect(useLibraryStore.getState().roles[0].callTiming).toBe('first')
   })
 
   it('reorderRoles rewrites order to match given id sequence', () => {

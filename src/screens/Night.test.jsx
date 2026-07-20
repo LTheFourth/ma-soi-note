@@ -6,8 +6,8 @@ import { useGameStore } from '../store/gameStore.js'
 
 const players = [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }, { id: 'p3', name: 'Cy' }]
 const roles = [
-  { id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, canKill: true, order: 0 },
-  { id: 'cupid', name: 'Cupid', color: '#e0a', gameNightEnabled: false, canKill: false, order: 1 },
+  { id: 'wolf', name: 'Wolf', color: '#c00', callTiming: 'every', actions: ['bad', 'good', 'info'], order: 0 },
+  { id: 'cupid', name: 'Cupid', color: '#e0a', callTiming: 'never', actions: [], order: 1 },
 ]
 
 describe('Night', () => {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useGameStore, selectSurvivors, selectRoleById } from '../store/gameStore.js'
-import { ACTION_TYPES, actionIcon, nextActionType } from '../lib/actions.js'
+import { ACTION_TYPES, actionIcon, nextActionType, roleActions } from '../lib/actions.js'
 
 // Quick action logger: tap an icon on a player to log an action for `role`.
 // Logged actions can be re-typed (tap icon), retargeted (tap name), or deleted.
@@ -19,6 +19,9 @@ export default function ActionPanel({ role, round }) {
 
   const [editTargetFor, setEditTargetFor] = useState(null)
 
+  // Only this role's allowed single-tap actions (link is handled separately, stage 2).
+  const allowed = ACTION_TYPES.filter((t) => t.key !== 'link' && roleActions(role).includes(t.key))
+
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-3">
       <p className="mb-2 text-sm text-gray-400">Tap an icon to log an action</p>
@@ -32,7 +35,7 @@ export default function ActionPanel({ role, round }) {
               {p.name} <span className="text-xs text-gray-400">({roleNameOf(p.id)})</span>
             </span>
             <span className="flex shrink-0 gap-1">
-              {ACTION_TYPES.map((t) => (
+              {allowed.map((t) => (
                 <button
                   key={t.key}
                   aria-label={`${t.label} ${p.name}`}

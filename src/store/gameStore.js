@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { uid } from '../lib/id.js'
 import { VILLAGER } from '../lib/roles.js'
+import { roleTiming } from '../lib/actions.js'
 
 const initial = {
   active: false,
@@ -91,7 +92,13 @@ export const useGameStore = create(
   ),
 )
 
-export const selectNightRoles = (s) => s.roles.filter((r) => r.gameNightEnabled)
+// Roles called on the current night: 'every' always; 'first' only on round 1
+// (first game night); 'never' excluded.
+export const selectNightRoles = (s) =>
+  s.roles.filter((r) => {
+    const t = roleTiming(r)
+    return t === 'every' || (t === 'first' && s.round === 1)
+  })
 export const selectRoleById = (s, id) =>
   id === 'villager' ? VILLAGER : s.roles.find((r) => r.id === id) || VILLAGER
 export const selectPlayersByRole = (s, roleId) =>
