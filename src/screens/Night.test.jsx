@@ -104,6 +104,22 @@ describe('Night', () => {
     expect(within(lastNight).getByText(/voted/)).toBeInTheDocument()
   })
 
+  it('shows [DEAD] + skip (no action panel) when the role has no living holder', () => {
+    useGameStore.getState().endGame()
+    useGameStore.getState().startGame(
+      [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }],
+      [{ id: 'wolf', name: 'Wolf', color: '#c00', callTiming: 'every', actions: ['bad'], order: 0 }],
+    )
+    useGameStore.setState({ assignments: { p1: 'wolf', p2: 'villager' } })
+    useGameStore.getState().startNight()
+    useGameStore.getState().eliminate('p1', 'voted') // wolf's only holder is dead
+    render(<Night />)
+    expect(screen.getByText(/\[DEAD\]/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /skip/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /done/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Kill/i })).toBeNull() // no ActionPanel
+  })
+
   it('summary can eliminate a player then finish night to day', async () => {
     const user = userEvent.setup()
     render(<Night />)

@@ -173,16 +173,34 @@ function RoleCall({ role, round }) {
   )
   const state = useGameStore.getState()
 
+  // The role can act only if a living player still holds it.
+  const roleDead = !survivors.some((p) => state.assignments[p.id] === role.id)
+
   return (
     <div className="grid gap-4 md:grid-cols-[1fr_260px]">
       <div>
-        <h2 className="mb-2 text-2xl font-bold" style={{ color: role.color }}>{role.name}</h2>
-        <ActionPanel role={role} round={round} />
-        <div className="mt-3 flex gap-2">
-          <button onClick={nightPrev} disabled={cursor === 0} className={`bg-white/10 hover:bg-white/15 ${navBtn}`}>← Back</button>
-          <button onClick={nightNext} className={`bg-indigo-600 hover:bg-indigo-500 ${navBtn}`}>Done →</button>
-          <button onClick={nightNext} className={`bg-white/10 hover:bg-white/15 ${navBtn}`}>Skip →</button>
-        </div>
+        <h2 className="mb-2 text-2xl font-bold" style={{ color: role.color }}>
+          {role.name}
+          {roleDead && <span className="ml-2 align-middle text-sm font-semibold text-red-400">[DEAD]</span>}
+        </h2>
+        {roleDead ? (
+          <>
+            <p className="text-gray-400">No living player holds this role — skip.</p>
+            <div className="mt-3 flex gap-2">
+              <button onClick={nightPrev} disabled={cursor === 0} className={`bg-white/10 hover:bg-white/15 ${navBtn}`}>← Back</button>
+              <button onClick={nightNext} className={`bg-indigo-600 hover:bg-indigo-500 ${navBtn}`}>Skip →</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <ActionPanel role={role} round={round} />
+            <div className="mt-3 flex gap-2">
+              <button onClick={nightPrev} disabled={cursor === 0} className={`bg-white/10 hover:bg-white/15 ${navBtn}`}>← Back</button>
+              <button onClick={nightNext} className={`bg-indigo-600 hover:bg-indigo-500 ${navBtn}`}>Done →</button>
+              <button onClick={nightNext} className={`bg-white/10 hover:bg-white/15 ${navBtn}`}>Skip →</button>
+            </div>
+          </>
+        )}
       </div>
 
       <aside className="space-y-4 text-sm">
