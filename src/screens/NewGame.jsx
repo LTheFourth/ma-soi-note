@@ -89,24 +89,37 @@ export default function NewGame() {
     )
   }
 
-  const Chip = ({ id, name, selected, onToggle, onDelete, color }) => (
-    <span className="inline-flex overflow-hidden rounded-full border border-white/15">
+  const Card = ({ name, color, selected, onToggle, onDelete }) => (
+    <div className="relative">
       <button
         aria-pressed={selected}
         onClick={onToggle}
-        className={`px-3 py-1.5 text-sm ${selected ? 'bg-indigo-600 text-white' : 'bg-transparent hover:bg-white/10'}`}
-        style={color && selected ? { backgroundColor: color } : undefined}
+        className={`flex w-full items-center gap-2 overflow-hidden rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
+          selected ? 'border-indigo-500 bg-indigo-600/20' : 'border-white/10 bg-white/5 hover:bg-white/10'
+        }`}
       >
-        {name}
+        {color && <span className="h-6 w-1.5 shrink-0 rounded-full" style={{ background: color }} />}
+        <span className="min-w-0 flex-1 truncate">{name}</span>
+        <span aria-hidden="true" className={`shrink-0 ${selected ? 'text-indigo-300' : 'text-transparent'}`}>✓</span>
       </button>
       <button
         aria-label={`delete ${name}`}
         onClick={onDelete}
-        className="border-l border-white/15 px-2 text-red-400 hover:bg-red-500/20"
+        className="absolute -right-1.5 -top-1.5 rounded-full border border-white/10 bg-[#141a24] px-1.5 text-xs text-red-400 opacity-80 hover:opacity-100"
       >
         ✕
       </button>
-    </span>
+    </div>
+  )
+
+  const SectionHead = ({ title, count, total, onAll, onClear }) => (
+    <div className="mb-2 flex items-center gap-2">
+      <h2 className="font-semibold text-gray-300">{title}</h2>
+      <span className="text-xs text-gray-500">{count}/{total} selected</span>
+      <span className="flex-1" />
+      <button onClick={onAll} className="rounded px-2 py-0.5 text-xs text-gray-300 hover:bg-white/10">All</button>
+      <button onClick={onClear} className="rounded px-2 py-0.5 text-xs text-gray-300 hover:bg-white/10">Clear</button>
+    </div>
   )
 
   return (
@@ -119,12 +132,17 @@ export default function NewGame() {
       </div>
 
       <section className="mb-6">
-        <h2 className="mb-2 font-semibold text-gray-300">Players</h2>
-        <div className="flex flex-wrap gap-2">
+        <SectionHead
+          title="Players"
+          count={selPlayers.size}
+          total={players.length}
+          onAll={() => setSelPlayers(new Set(players.map((p) => p.id)))}
+          onClear={() => setSelPlayers(new Set())}
+        />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {players.map((p) => (
-            <Chip
+            <Card
               key={p.id}
-              id={p.id}
               name={p.name}
               selected={selPlayers.has(p.id)}
               onToggle={() => toggle(selPlayers, setSelPlayers)(p.id)}
@@ -145,12 +163,17 @@ export default function NewGame() {
       </section>
 
       <section className="mb-6">
-        <h2 className="mb-2 font-semibold text-gray-300">Roles</h2>
-        <div className="flex flex-wrap gap-2">
+        <SectionHead
+          title="Roles"
+          count={selRoles.size}
+          total={roles.length}
+          onAll={() => setSelRoles(new Set(roles.map((r) => r.id)))}
+          onClear={() => setSelRoles(new Set())}
+        />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {roles.map((r) => (
-            <Chip
+            <Card
               key={r.id}
-              id={r.id}
               name={r.name}
               color={r.color}
               selected={selRoles.has(r.id)}

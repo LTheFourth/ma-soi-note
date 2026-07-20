@@ -74,6 +74,14 @@ describe('NewGame', () => {
     expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('Select-all selects every player', async () => {
+    const user = userEvent.setup()
+    render(<NewGame />)
+    await user.click(screen.getAllByRole('button', { name: 'All' })[0]) // players section
+    expect(screen.getByRole('button', { name: 'Al' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Bo' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('starting a game activates the game store in setup phase', async () => {
     const user = userEvent.setup()
     render(<NewGame />)
