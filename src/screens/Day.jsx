@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useGameStore, selectRoleById } from '../store/gameStore.js'
 import TopBar from '../components/TopBar.jsx'
 import HistorySidebar from '../components/HistorySidebar.jsx'
+import DayTimer from '../components/DayTimer.jsx'
 
 export default function Day() {
   const players = useGameStore((s) => s.players)
@@ -19,6 +20,9 @@ export default function Day() {
   return (
     <div className="mx-auto max-w-4xl p-4">
       <TopBar phaseLabel="☀️ Day" onNight={startNight} onEndGame={endGame} />
+      <div className="mb-4 flex justify-center">
+        <DayTimer />
+      </div>
       <div className="grid gap-4 md:grid-cols-[1fr_280px]">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {players.map((p) => {
