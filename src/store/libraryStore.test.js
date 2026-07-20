@@ -121,4 +121,19 @@ describe('libraryStore', () => {
     useLibraryStore.getState().deleteRoleSet(sets[0].id)
     expect(useLibraryStore.getState().roleSets).toHaveLength(0)
   })
+
+  it('saveRoleSet overrides a set with the same name (no duplicate)', () => {
+    useLibraryStore.getState().saveRoleSet('S', [{ roleId: 'r1' }])
+    useLibraryStore.getState().saveRoleSet('S', [{ roleId: 'r1' }, { roleId: 'r2' }])
+    const sets = useLibraryStore.getState().roleSets
+    expect(sets).toHaveLength(1)
+    expect(sets[0].items).toHaveLength(2)
+  })
+
+  it('updateRoleSet replaces items by id', () => {
+    useLibraryStore.getState().saveRoleSet('S', [{ roleId: 'r1' }])
+    const id = useLibraryStore.getState().roleSets[0].id
+    useLibraryStore.getState().updateRoleSet(id, [{ roleId: 'r2' }])
+    expect(useLibraryStore.getState().roleSets[0].items).toEqual([{ roleId: 'r2' }])
+  })
 })

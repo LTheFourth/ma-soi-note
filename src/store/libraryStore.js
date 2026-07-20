@@ -60,9 +60,20 @@ export const useLibraryStore = create(
       saveLastGame: (playerIds, roleIds) => set({ lastGame: { playerIds, roleIds } }),
 
       // A named role-set preset. items snapshot each role's config at save time:
-      // { roleId, order, callTiming, actions, canEliminate }.
+      // { roleId, name, color, order, callTiming, actions, canEliminate }.
+      // Saving with an existing name overrides that set instead of duplicating.
       saveRoleSet: (name, items) =>
-        set((s) => ({ roleSets: [...s.roleSets, { id: uid(), name: name.trim(), items }] })),
+        set((s) => {
+          const trimmed = name.trim()
+          const exists = s.roleSets.some((rs) => rs.name === trimmed)
+          return {
+            roleSets: exists
+              ? s.roleSets.map((rs) => (rs.name === trimmed ? { ...rs, items } : rs))
+              : [...s.roleSets, { id: uid(), name: trimmed, items }],
+          }
+        }),
+      updateRoleSet: (id, items) =>
+        set((s) => ({ roleSets: s.roleSets.map((rs) => (rs.id === id ? { ...rs, items } : rs)) })),
       deleteRoleSet: (id) =>
         set((s) => ({ roleSets: s.roleSets.filter((rs) => rs.id !== id) })),
     }),

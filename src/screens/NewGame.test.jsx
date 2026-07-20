@@ -65,6 +65,23 @@ describe('NewGame', () => {
     expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('the update button overwrites a saved set with the current selection', async () => {
+    const user = userEvent.setup()
+    render(<NewGame />)
+    await user.click(screen.getByRole('button', { name: 'Wolf' }))
+    await user.type(screen.getByPlaceholderText(/save selected roles/i), 'S')
+    await user.click(screen.getByRole('button', { name: /save set/i }))
+    expect(useLibraryStore.getState().roleSets[0].items).toHaveLength(1)
+
+    // add + select a second role, then update the set
+    await user.type(screen.getByPlaceholderText('new role'), 'Seer')
+    await user.click(screen.getAllByRole('button', { name: 'Add' })[1])
+    await user.click(screen.getByRole('button', { name: 'Seer' }))
+    await user.click(screen.getByRole('button', { name: /update set S/i }))
+    expect(useLibraryStore.getState().roleSets).toHaveLength(1)
+    expect(useLibraryStore.getState().roleSets[0].items).toHaveLength(2)
+  })
+
   it('pre-selects the last game players and roles', () => {
     const al = useLibraryStore.getState().players.find((p) => p.name === 'Al')
     const wolf = useLibraryStore.getState().roles[0]

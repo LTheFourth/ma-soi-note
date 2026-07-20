@@ -20,7 +20,7 @@ export default function NewGame() {
   const {
     players, roles, lastGame, roleSets,
     addPlayer, removePlayer, addRole, removeRole, updateRole, upsertRole, reorderRoles,
-    saveRoleSet, deleteRoleSet,
+    saveRoleSet, updateRoleSet, deleteRoleSet,
   } = useLibraryStore()
   const startGame = useGameStore((s) => s.startGame)
 
@@ -53,9 +53,13 @@ export default function NewGame() {
 
   const saveCurrentSet = () => {
     if (!setName.trim() || selRoles.size === 0) return
-    // Snapshot the full role (name/color/options) so the set can rebuild
-    // deleted roles later.
-    const items = roles
+    saveRoleSet(setName, currentItems())
+    setSetName('')
+  }
+
+  // Snapshot the full role (name/color/options) so a set can rebuild deleted roles later.
+  const currentItems = () =>
+    roles
       .filter((r) => selRoles.has(r.id))
       .map((r) => ({
         roleId: r.id,
@@ -66,9 +70,6 @@ export default function NewGame() {
         actions: roleActions(r),
         canEliminate: !!r.canEliminate,
       }))
-    saveRoleSet(setName, items)
-    setSetName('')
-  }
 
   const loadSet = (rs) => {
     const ids = rs.items.map((it) => {
@@ -251,6 +252,15 @@ export default function NewGame() {
                   className="px-3 py-1.5 text-sm hover:bg-white/10"
                 >
                   {rs.name} ({rs.items.length})
+                </button>
+                <button
+                  aria-label={`update set ${rs.name}`}
+                  title="Overwrite with current selection"
+                  disabled={selRoles.size === 0}
+                  onClick={() => updateRoleSet(rs.id, currentItems())}
+                  className="border-l border-white/15 px-2 text-indigo-300 hover:bg-white/10 disabled:opacity-30"
+                >
+                  ⟳
                 </button>
                 <button
                   aria-label={`delete set ${rs.name}`}
