@@ -9,7 +9,7 @@ const TIMINGS = [
   { key: 'never', label: 'Setup only' },
 ]
 
-function Row({ role, onSetTiming, onToggleAction }) {
+function Row({ role, onSetTiming, onToggleAction, onToggleElim }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: role.id })
   const style = { transform: CSS.Transform.toString(transform), transition }
   const timing = roleTiming(role)
@@ -63,12 +63,22 @@ function Row({ role, onSetTiming, onToggleAction }) {
             </label>
           ))}
         </span>
+        <label className="flex cursor-pointer items-center gap-1 text-gray-300">
+          <input
+            type="checkbox"
+            aria-label={`${role.name} elimination cause`}
+            checked={!!role.canEliminate}
+            onChange={(e) => onToggleElim(role.id, e.target.checked)}
+            className="h-4 w-4 accent-red-500"
+          />
+          🪦 elim cause
+        </label>
       </div>
     </div>
   )
 }
 
-export default function RoleOrder({ roles, onReorder, onSetTiming, onToggleAction }) {
+export default function RoleOrder({ roles, onReorder, onSetTiming, onToggleAction, onToggleElim }) {
   const sensors = useSensors(useSensor(PointerSensor))
   const ids = roles.map((r) => r.id)
 
@@ -83,7 +93,13 @@ export default function RoleOrder({ roles, onReorder, onSetTiming, onToggleActio
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleEnd}>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
         {roles.map((r) => (
-          <Row key={r.id} role={r} onSetTiming={onSetTiming} onToggleAction={onToggleAction} />
+          <Row
+            key={r.id}
+            role={r}
+            onSetTiming={onSetTiming}
+            onToggleAction={onToggleAction}
+            onToggleElim={onToggleElim}
+          />
         ))}
       </SortableContext>
     </DndContext>

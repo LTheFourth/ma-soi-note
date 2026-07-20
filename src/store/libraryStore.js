@@ -23,6 +23,7 @@ export const useLibraryStore = create(
               color,
               callTiming: 'every',
               actions: ['bad', 'good', 'info'],
+              canEliminate: false,
               order: s.roles.reduce((m, r) => Math.max(m, r.order), -1) + 1,
             },
           ],

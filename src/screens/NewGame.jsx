@@ -153,6 +153,7 @@ export default function NewGame() {
               const next = on ? [...new Set([...cur, key])] : cur.filter((k) => k !== key)
               updateRole(id, { actions: next })
             }}
+            onToggleElim={(id, on) => updateRole(id, { canEliminate: on })}
           />
         </section>
       )}

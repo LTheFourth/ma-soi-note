@@ -6,8 +6,8 @@ import { useGameStore } from '../store/gameStore.js'
 
 const players = [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }, { id: 'p3', name: 'Cy' }]
 const roles = [
-  { id: 'wolf', name: 'Wolf', color: '#c00', callTiming: 'every', actions: ['bad', 'good', 'info'], order: 0 },
-  { id: 'cupid', name: 'Cupid', color: '#e0a', callTiming: 'never', actions: [], order: 1 },
+  { id: 'wolf', name: 'Wolf', color: '#c00', callTiming: 'every', actions: ['bad', 'good', 'info'], canEliminate: true, order: 0 },
+  { id: 'cupid', name: 'Cupid', color: '#e0a', callTiming: 'never', actions: [], canEliminate: false, order: 1 },
 ]
 
 describe('Night', () => {
@@ -109,7 +109,7 @@ describe('Night', () => {
     render(<Night />)
     await user.click(screen.getByRole('button', { name: /skip/i }))  // -> summary
     await user.click(screen.getByRole('button', { name: /eliminate Bo/i }))
-    // dialog: only roles flagged canKill appear (Wolf yes, Cupid no)
+    // dialog: only roles flagged canEliminate appear (Wolf yes, Cupid no)
     expect(screen.queryByRole('button', { name: /killed by Cupid/i })).toBeNull()
     await user.click(screen.getByRole('button', { name: /killed by Wolf/i }))
     expect(useGameStore.getState().eliminated).toContain('p2')
