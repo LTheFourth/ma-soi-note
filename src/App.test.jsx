@@ -7,6 +7,6 @@ describe('App', () => {
   beforeEach(() => useGameStore.getState().endGame())
   it('shows New Game screen when no active game', () => {
     render(<App />)
-    expect(screen.getByText(/new game/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /start game/i })).toBeInTheDocument()
   })
 })

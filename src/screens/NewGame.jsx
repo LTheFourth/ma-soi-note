@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useLibraryStore } from '../store/libraryStore.js'
 import { useGameStore } from '../store/gameStore.js'
 import RoleOrder from './RoleOrder.jsx'
+import { APP_VERSION } from '../version.js'
 
 const inputCls =
   'rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm placeholder-gray-500 focus:border-indigo-500 focus:outline-none'
@@ -68,7 +69,12 @@ export default function NewGame() {
 
   return (
     <div className="mx-auto max-w-3xl p-4">
-      <h1 className="mb-4 text-2xl font-bold">🐺 Werewolf Admin — New Game</h1>
+      <div className="mb-4 flex items-center gap-2">
+        <h1 className="text-2xl font-bold">🐺 Werewolf Admin</h1>
+        <span className="rounded-full bg-indigo-600/30 px-2 py-0.5 text-xs font-medium text-indigo-200">
+          v{APP_VERSION}
+        </span>
+      </div>
 
       <section className="mb-6">
         <h2 className="mb-2 font-semibold text-gray-300">Players</h2>
