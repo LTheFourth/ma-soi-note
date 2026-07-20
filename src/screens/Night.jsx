@@ -15,10 +15,12 @@ function LogLine({ action, onDelete }) {
   const target = state.players.find((p) => p.id === action.target)?.name ?? '?'
 
   if (action.kind === 'elim') {
+    const targetRole = selectRoleById(state, state.assignments[action.target])
     return (
       <li className="flex items-center gap-1.5 py-0.5 text-gray-300">
         <span className="text-base">🪦</span>
         <span>{target}</span>
+        <span className="text-xs text-gray-400">({targetRole.name})</span>
         <span className="text-gray-500">— {action.reason || 'eliminated'}</span>
       </li>
     )
