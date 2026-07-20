@@ -3,6 +3,7 @@ import { useGameStore, selectRoleById } from '../store/gameStore.js'
 import TopBar from '../components/TopBar.jsx'
 import HistorySidebar from '../components/HistorySidebar.jsx'
 import DayTimer from '../components/DayTimer.jsx'
+import LinkDot from '../components/LinkDot.jsx'
 
 export default function Day() {
   const players = useGameStore((s) => s.players)
@@ -37,7 +38,7 @@ export default function Day() {
                 style={{ borderColor: role.color }}
                 onClick={() => !dead && setMenuFor(menuFor === p.id ? null : p.id)}
               >
-                <div className="font-medium">{p.name}</div>
+                <div className="font-medium">{p.name} <LinkDot pid={p.id} /></div>
                 <div className="text-xs text-gray-400">{role.name}</div>
                 {menuFor === p.id && !dead && (
                   <div

@@ -39,6 +39,18 @@ describe('ActionPanel', () => {
     expect(screen.queryByRole('button', { name: /Save Al/i })).toBeNull()
   })
 
+  it('links 2+ selected players into a group', async () => {
+    const user = userEvent.setup()
+    const cupid = { id: 'cupid', name: 'Cupid', color: '#e0a', actions: ['link'] }
+    render(<ActionPanel role={cupid} round={1} />)
+    await user.click(screen.getByRole('checkbox', { name: /link Al/i }))
+    await user.click(screen.getByRole('checkbox', { name: /link Bo/i }))
+    await user.click(screen.getByRole('button', { name: /link selected/i }))
+    const e = useGameStore.getState().actionLog.find((a) => a.type === 'link')
+    expect(e.targets).toEqual(['p1', 'p2'])
+    expect(e.color).toBeTruthy()
+  })
+
   it('deletes a logged action', async () => {
     const user = userEvent.setup()
     render(<ActionPanel role={roles[0]} round={1} />)

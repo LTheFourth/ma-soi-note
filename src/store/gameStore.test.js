@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   useGameStore, selectNightRoles, selectRoleById,
-  selectPlayersByRole, selectSurvivors, selectAssignedPlayerIds,
+  selectPlayersByRole, selectSurvivors, selectAssignedPlayerIds, linkColorOf,
 } from './gameStore.js'
 
 const players = [
@@ -91,6 +91,21 @@ describe('gameStore', () => {
     g().removeAction(firstId)
     expect(g().actionLog).toHaveLength(1)
     expect(g().actionLog[0].actor).toBe('seer')
+  })
+
+  it('logLink groups players with a per-group color', () => {
+    g().startGame(players, roles)
+    g().logLink({ actor: 'wolf', targets: ['p1', 'p2'], round: 1 })
+    const e = g().actionLog.find((a) => a.type === 'link')
+    expect(e).toMatchObject({ type: 'link', targets: ['p1', 'p2'] })
+    expect(e.color).toBeTruthy()
+    expect(linkColorOf(g(), 'p1')).toBe(e.color)
+    expect(linkColorOf(g(), 'p2')).toBe(e.color)
+    expect(linkColorOf(g(), 'p3')).toBeNull()
+    // second group gets a different color
+    g().logLink({ actor: 'wolf', targets: ['p3', 'p4'], round: 1 })
+    const colors = g().actionLog.filter((a) => a.type === 'link').map((a) => a.color)
+    expect(colors[0]).not.toBe(colors[1])
   })
 
   it('updateAction patches an action in place', () => {

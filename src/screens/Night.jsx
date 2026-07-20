@@ -4,6 +4,7 @@ import {
   useGameStore, selectNightRoles, selectRoleById, selectSurvivors,
 } from '../store/gameStore.js'
 import ActionPanel from '../components/ActionPanel.jsx'
+import LinkDot from '../components/LinkDot.jsx'
 import { actionIcon, roleActions } from '../lib/actions.js'
 
 const navBtn = 'rounded-lg px-3 py-2 text-sm active:scale-95 disabled:opacity-30'
@@ -12,14 +13,26 @@ const navBtn = 'rounded-lg px-3 py-2 text-sm active:scale-95 disabled:opacity-30
 // elimination (🪦 Player — reason). Elim lines are not deletable here.
 function LogLine({ action, onDelete }) {
   const state = useGameStore.getState()
-  const target = state.players.find((p) => p.id === action.target)?.name ?? '?'
+  const nameOf = (pid) => state.players.find((p) => p.id === pid)?.name ?? '?'
+
+  if (action.type === 'link') {
+    const role = selectRoleById(state, action.actor)
+    return (
+      <li className="flex items-center gap-1.5 py-0.5">
+        <span style={{ color: role.color }}>{role.name}</span>
+        <span className="text-base" style={{ color: action.color }}>🔗</span>
+        <span>{action.targets.map(nameOf).join(' + ')}</span>
+      </li>
+    )
+  }
 
   if (action.kind === 'elim') {
     const targetRole = selectRoleById(state, state.assignments[action.target])
     return (
       <li className="flex items-center gap-1.5 py-0.5 text-gray-300">
         <span className="text-base">🪦</span>
-        <span>{target}</span>
+        <span>{nameOf(action.target)}</span>
+        <LinkDot pid={action.target} />
         <span className="text-xs text-gray-400">({targetRole.name})</span>
         <span className="text-gray-500">— {action.reason || 'eliminated'}</span>
       </li>
@@ -31,7 +44,8 @@ function LogLine({ action, onDelete }) {
     <li className="flex items-center gap-1.5 py-0.5">
       <span style={{ color: role.color }}>{role.name}</span>
       <span className="text-base">{actionIcon(action.type)}</span>
-      <span>{target}</span>
+      <span>{nameOf(action.target)}</span>
+      <LinkDot pid={action.target} />
       {action.note ? <span className="text-gray-500">({action.note})</span> : null}
       {onDelete && (
         <button
@@ -80,7 +94,7 @@ function NightSummary() {
               key={p.id}
               className="flex items-center justify-between gap-2 rounded-lg bg-black/25 px-3 py-2"
             >
-              <span>{p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></span>
+              <span>{p.name} <LinkDot pid={p.id} /> <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></span>
               <button
                 onClick={() => setElimFor(p.id)}
                 className="rounded-md bg-red-600/80 px-2 py-1 text-sm hover:bg-red-600"
@@ -191,7 +205,7 @@ function RoleCall({ role, round }) {
           <h3 className="mb-1 font-semibold text-gray-300">Surviving players</h3>
           <ul className="space-y-0.5">
             {survivors.map((p) => (
-              <li key={p.id}>{p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></li>
+              <li key={p.id}>{p.name} <LinkDot pid={p.id} /> <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></li>
             ))}
           </ul>
         </div>

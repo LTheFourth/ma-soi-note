@@ -54,6 +54,16 @@ export const useGameStore = create(
       removeAction: (id) =>
         set((s) => ({ actionLog: s.actionLog.filter((a) => a.id !== id) })),
 
+      // Link 2+ players into a group; each group gets its own color.
+      logLink: ({ actor, targets, round }) =>
+        set((s) => {
+          const n = s.actionLog.filter((a) => a.type === 'link').length
+          const color = LINK_COLORS[n % LINK_COLORS.length]
+          return {
+            actionLog: [...s.actionLog, { id: uid(), type: 'link', actor, targets, color, round }],
+          }
+        }),
+
       updateAction: (id, patch) =>
         set((s) => ({
           actionLog: s.actionLog.map((a) => (a.id === id ? { ...a, ...patch } : a)),
@@ -94,6 +104,15 @@ export const useGameStore = create(
 
 // Roles called on the current night: 'every' always; 'first' only on round 1
 // (first game night); 'never' excluded.
+// Distinct colors for linked groups (cycled).
+const LINK_COLORS = ['#ec4899', '#14b8a6', '#f59e0b', '#8b5cf6', '#22c55e', '#ef4444', '#3b82f6']
+
+// Color of the link group a player belongs to, or null.
+export const linkColorOf = (s, pid) => {
+  const e = s.actionLog.find((a) => a.type === 'link' && a.targets?.includes(pid))
+  return e ? e.color : null
+}
+
 export const selectNightRoles = (s) =>
   s.roles.filter((r) => {
     const t = roleTiming(r)
