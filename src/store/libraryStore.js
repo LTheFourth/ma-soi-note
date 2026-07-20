@@ -22,6 +22,7 @@ export const useLibraryStore = create(
               name: name.trim(),
               color,
               gameNightEnabled: true,
+              canKill: false,
               order: s.roles.reduce((m, r) => Math.max(m, r.order), -1) + 1,
             },
           ],

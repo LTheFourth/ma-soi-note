@@ -108,7 +108,7 @@ function NightSummary() {
               Eliminate <strong>{state.players.find((p) => p.id === elimFor)?.name}</strong> — killed by which role?
             </p>
             <div className="flex flex-col gap-2">
-              {state.roles.map((r) => (
+              {state.roles.filter((r) => r.canKill).map((r) => (
                 <button
                   key={r.id}
                   onClick={() => { eliminate(elimFor, r.name); setElimFor(null) }}
@@ -170,11 +170,10 @@ function RoleCall({ role, round }) {
       </div>
 
       <aside className="space-y-4 text-sm">
-        {round > 1 && (
+        {lastNight.length > 0 && (
           <div>
-            <h3 className="mb-1 font-semibold text-gray-300">Last night</h3>
+            <h3 className="mb-1 font-semibold text-gray-300">Last night / previous day</h3>
             <ul aria-label="last night" className="rounded-lg bg-black/20 p-2">
-              {lastNight.length === 0 && <li className="text-gray-500">Nothing.</li>}
               {lastNight.map((a) => <LogLine key={a.id} action={a} />)}
             </ul>
           </div>

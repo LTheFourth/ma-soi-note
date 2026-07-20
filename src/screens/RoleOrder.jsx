@@ -3,14 +3,14 @@ import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } 
 import { CSS } from '@dnd-kit/utilities'
 import Toggle from '../components/Toggle.jsx'
 
-function Row({ role, onToggle }) {
+function Row({ role, onToggle, onToggleKill }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: role.id })
   const style = { transform: CSS.Transform.toString(transform), transition }
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="mb-1.5 flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-2"
+      className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-white/10 bg-white/5 p-2"
     >
       <span
         className="cursor-grab touch-none px-1 text-gray-500"
@@ -26,11 +26,16 @@ function Row({ role, onToggle }) {
         onChange={(v) => onToggle(role.id, v)}
         label="call on game nights"
       />
+      <Toggle
+        checked={!!role.canKill}
+        onChange={(v) => onToggleKill(role.id, v)}
+        label="can eliminate"
+      />
     </div>
   )
 }
 
-export default function RoleOrder({ roles, onReorder, onToggle }) {
+export default function RoleOrder({ roles, onReorder, onToggle, onToggleKill }) {
   const sensors = useSensors(useSensor(PointerSensor))
   const ids = roles.map((r) => r.id)
 
@@ -44,7 +49,9 @@ export default function RoleOrder({ roles, onReorder, onToggle }) {
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleEnd}>
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        {roles.map((r) => <Row key={r.id} role={r} onToggle={onToggle} />)}
+        {roles.map((r) => (
+          <Row key={r.id} role={r} onToggle={onToggle} onToggleKill={onToggleKill} />
+        ))}
       </SortableContext>
     </DndContext>
   )

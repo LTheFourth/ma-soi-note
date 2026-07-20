@@ -6,8 +6,8 @@ import { useGameStore } from '../store/gameStore.js'
 
 const players = [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }, { id: 'p3', name: 'Cy' }]
 const roles = [
-  { id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, order: 0 },
-  { id: 'cupid', name: 'Cupid', color: '#e0a', gameNightEnabled: false, order: 1 },
+  { id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, canKill: true, order: 0 },
+  { id: 'cupid', name: 'Cupid', color: '#e0a', gameNightEnabled: false, canKill: false, order: 1 },
 ]
 
 describe('Night', () => {
@@ -85,12 +85,32 @@ describe('Night', () => {
     expect(useGameStore.getState().actionLog).toHaveLength(0)
   })
 
+  it('"last night" panel includes the previous day\'s eliminations', () => {
+    useGameStore.getState().endGame()
+    useGameStore.getState().startGame(
+      [{ id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' }],
+      [{ id: 'wolf', name: 'Wolf', color: '#c00', gameNightEnabled: true, canKill: true, order: 0 }],
+    )
+    // It is now night of round 2; last round a day-vote eliminated Bo.
+    useGameStore.setState({
+      phase: 'night', round: 2, nightCursor: 0,
+      assignments: { p1: 'wolf', p2: 'villager' },
+      eliminated: ['p2'],
+      actionLog: [{ id: 'e1', kind: 'elim', actor: null, type: 'elim', target: 'p2', reason: 'voted', round: 1 }],
+    })
+    render(<Night />)
+    const lastNight = screen.getByRole('list', { name: /last night/i })
+    expect(within(lastNight).getByText('Bo')).toBeInTheDocument()
+    expect(within(lastNight).getByText(/voted/)).toBeInTheDocument()
+  })
+
   it('summary can eliminate a player then finish night to day', async () => {
     const user = userEvent.setup()
     render(<Night />)
     await user.click(screen.getByRole('button', { name: /skip/i }))  // -> summary
     await user.click(screen.getByRole('button', { name: /eliminate Bo/i }))
-    // dialog: pick which role killed them
+    // dialog: only roles flagged canKill appear (Wolf yes, Cupid no)
+    expect(screen.queryByRole('button', { name: /killed by Cupid/i })).toBeNull()
     await user.click(screen.getByRole('button', { name: /killed by Wolf/i }))
     expect(useGameStore.getState().eliminated).toContain('p2')
     const elim = useGameStore.getState().actionLog.find((a) => a.kind === 'elim')

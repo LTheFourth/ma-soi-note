@@ -140,6 +140,7 @@ export default function NewGame() {
             roles={orderedSelectedRoles}
             onReorder={reorderRoles}
             onToggle={(id, v) => updateRole(id, { gameNightEnabled: v })}
+            onToggleKill={(id, v) => updateRole(id, { canKill: v })}
           />
         </section>
       )}
