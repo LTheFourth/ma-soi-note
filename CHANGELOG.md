@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.2.0-beta — 2026-07-20
+
+### Features
+- **Dead roles skip:** during the night, a role with no living holder shows just its name marked **[DEAD]** and a Skip button (no action panel).
+- **Self-recovering role sets:** a saved set stores each role's full snapshot (name, color, order, timing, actions, elim-cause); loading a set re-creates roles that were deleted from the library.
+- **Redesigned player/role lists:** New Game now uses a selectable card grid — tap to toggle (✓ + highlight, role color bar), per-section selected count, and Select all / Clear.
+
 ## v1.1.0-beta — 2026-07-20
 
 Roles, linking, and reusable setups.
