@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.1.0-beta — 2026-07-20
+
+Roles, linking, and reusable setups.
+
+### Features
+- **Per-role call timing:** Every night / First night only / Setup only.
+- **Per-role action set:** choose which of Kill 💀 / Save 💚 / Info 👁 / Link 🔗 a role can log; its night turn shows only those.
+- **Linking:** roles with the Link action group 2+ players; each linked group gets its own color, shown as a colored dot beside linked players everywhere (grid, lists, action screen, history, logs).
+- **Elimination cause:** per-role "🪦 elim cause" flag — only flagged roles appear in the night "killed by which role?" list.
+- **Remember last game:** New Game pre-selects the players and roles from the last game played.
+- **Role-set presets:** save the current roles + order + options as a named set; load it later.
+
 ## v1.0.0-beta — 2026-07-20
 
 First public beta of the Werewolf (Ma Sói) moderator app.
