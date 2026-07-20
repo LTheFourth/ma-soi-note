@@ -32,6 +32,14 @@ export const useLibraryStore = create(
         })),
       updateRole: (id, patch) =>
         set((s) => ({ roles: s.roles.map((r) => (r.id === id ? { ...r, ...patch } : r)) })),
+      // Insert the role if its id is new, else merge the patch. Used to restore
+      // roles from a saved set even if they were deleted from the library.
+      upsertRole: (role) =>
+        set((s) => ({
+          roles: s.roles.some((r) => r.id === role.id)
+            ? s.roles.map((r) => (r.id === role.id ? { ...r, ...role } : r))
+            : [...s.roles, role],
+        })),
       removeRole: (id) =>
         set((s) => ({ roles: s.roles.filter((r) => r.id !== id) })),
 

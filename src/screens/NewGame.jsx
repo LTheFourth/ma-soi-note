@@ -12,7 +12,7 @@ const addBtnCls = 'rounded-lg bg-white/10 px-3 py-2 text-sm hover:bg-white/15 ac
 export default function NewGame() {
   const {
     players, roles, lastGame, roleSets,
-    addPlayer, removePlayer, addRole, removeRole, updateRole, reorderRoles,
+    addPlayer, removePlayer, addRole, removeRole, updateRole, upsertRole, reorderRoles,
     saveRoleSet, deleteRoleSet,
   } = useLibraryStore()
   const startGame = useGameStore((s) => s.startGame)
@@ -46,10 +46,14 @@ export default function NewGame() {
 
   const saveCurrentSet = () => {
     if (!setName.trim() || selRoles.size === 0) return
+    // Snapshot the full role (name/color/options) so the set can rebuild
+    // deleted roles later.
     const items = roles
       .filter((r) => selRoles.has(r.id))
       .map((r) => ({
         roleId: r.id,
+        name: r.name,
+        color: r.color,
         order: r.order,
         callTiming: roleTiming(r),
         actions: roleActions(r),
@@ -60,17 +64,18 @@ export default function NewGame() {
   }
 
   const loadSet = (rs) => {
-    const ids = []
-    rs.items.forEach((it) => {
-      if (roles.some((r) => r.id === it.roleId)) {
-        updateRole(it.roleId, {
-          order: it.order,
-          callTiming: it.callTiming,
-          actions: it.actions,
-          canEliminate: it.canEliminate,
-        })
-        ids.push(it.roleId)
-      }
+    const ids = rs.items.map((it) => {
+      // Recreate the role if it was deleted; otherwise apply the saved config.
+      upsertRole({
+        id: it.roleId,
+        name: it.name ?? '?',
+        color: it.color ?? '#4488cc',
+        order: it.order,
+        callTiming: it.callTiming,
+        actions: it.actions,
+        canEliminate: it.canEliminate,
+      })
+      return it.roleId
     })
     setSelRoles(new Set(ids))
   }

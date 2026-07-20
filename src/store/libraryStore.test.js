@@ -96,6 +96,17 @@ describe('libraryStore', () => {
     expect(new Set(orders).size).toBe(3)         // all unique
   })
 
+  it('upsertRole inserts a new role and merges into an existing one', () => {
+    useLibraryStore.getState().upsertRole({
+      id: 'x1', name: 'Ghost', color: '#fff', order: 0, callTiming: 'every', actions: ['info'], canEliminate: false,
+    })
+    expect(useLibraryStore.getState().roles.map((r) => r.id)).toContain('x1')
+    useLibraryStore.getState().upsertRole({ id: 'x1', name: 'Ghost2' })
+    const r = useLibraryStore.getState().roles.find((x) => x.id === 'x1')
+    expect(r.name).toBe('Ghost2')
+    expect(r.color).toBe('#fff') // untouched fields preserved
+  })
+
   it('saveLastGame stores selected ids', () => {
     useLibraryStore.getState().saveLastGame(['p1', 'p2'], ['r1'])
     expect(useLibraryStore.getState().lastGame).toEqual({ playerIds: ['p1', 'p2'], roleIds: ['r1'] })

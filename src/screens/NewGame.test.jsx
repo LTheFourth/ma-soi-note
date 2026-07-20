@@ -47,7 +47,7 @@ describe('NewGame', () => {
     expect(screen.getByRole('button', { name: /start game/i })).toBeDisabled()
   })
 
-  it('saves selected roles as a set and loads it back', async () => {
+  it('saves a set and restores roles even after they are deleted', async () => {
     const user = userEvent.setup()
     render(<NewGame />)
     await user.click(screen.getByRole('button', { name: 'Wolf' })) // select
@@ -55,9 +55,13 @@ describe('NewGame', () => {
     await user.click(screen.getByRole('button', { name: /save set/i }))
     expect(useLibraryStore.getState().roleSets).toHaveLength(1)
 
-    await user.click(screen.getByRole('button', { name: 'Wolf' })) // deselect
-    expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'false')
-    await user.click(screen.getByRole('button', { name: /^MySet/ })) // load set chip
+    // delete Wolf from the library entirely
+    await user.click(screen.getByRole('button', { name: /delete Wolf/i }))
+    expect(useLibraryStore.getState().roles.some((r) => r.name === 'Wolf')).toBe(false)
+
+    // loading the set recreates Wolf and selects it
+    await user.click(screen.getByRole('button', { name: /^MySet/ }))
+    expect(useLibraryStore.getState().roles.some((r) => r.name === 'Wolf')).toBe(true)
     expect(screen.getByRole('button', { name: 'Wolf' })).toHaveAttribute('aria-pressed', 'true')
   })
 
