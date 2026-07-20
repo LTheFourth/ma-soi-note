@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import {
   useGameStore, selectNightRoles, selectRoleById, selectSurvivors,
@@ -7,11 +8,23 @@ import { actionIcon } from '../lib/actions.js'
 
 const navBtn = 'rounded-lg px-3 py-2 text-sm active:scale-95 disabled:opacity-30'
 
-// One log line: RoleName <icon> Target, with an optional delete button.
+// One log line. Either a role action (RoleName <icon> Target) or an
+// elimination (🪦 Player — reason). Elim lines are not deletable here.
 function LogLine({ action, onDelete }) {
   const state = useGameStore.getState()
-  const role = selectRoleById(state, action.actor)
   const target = state.players.find((p) => p.id === action.target)?.name ?? '?'
+
+  if (action.kind === 'elim') {
+    return (
+      <li className="flex items-center gap-1.5 py-0.5 text-gray-300">
+        <span className="text-base">🪦</span>
+        <span>{target}</span>
+        <span className="text-gray-500">— {action.reason || 'eliminated'}</span>
+      </li>
+    )
+  }
+
+  const role = selectRoleById(state, action.actor)
   return (
     <li className="flex items-center gap-1.5 py-0.5">
       <span style={{ color: role.color }}>{role.name}</span>
@@ -42,6 +55,7 @@ function NightSummary() {
     useShallow((s) => s.actionLog.filter((a) => a.round === round)),
   )
   const state = useGameStore.getState()
+  const [elimFor, setElimFor] = useState(null) // playerId awaiting a kill-reason
 
   return (
     <div className="space-y-4">
@@ -66,7 +80,7 @@ function NightSummary() {
             >
               <span>{p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span></span>
               <button
-                onClick={() => eliminate(p.id)}
+                onClick={() => setElimFor(p.id)}
                 className="rounded-md bg-red-600/80 px-2 py-1 text-sm hover:bg-red-600"
               >
                 Eliminate {p.name}
@@ -82,6 +96,44 @@ function NightSummary() {
       >
         Finish Night → Day ☀️
       </button>
+
+      {elimFor && (
+        <div
+          className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-xs rounded-xl border border-white/10 bg-[#141a24] p-5">
+            <p className="mb-3">
+              Eliminate <strong>{state.players.find((p) => p.id === elimFor)?.name}</strong> — killed by which role?
+            </p>
+            <div className="flex flex-col gap-2">
+              {state.roles.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => { eliminate(elimFor, r.name); setElimFor(null) }}
+                  className="rounded-lg px-3 py-2 text-left font-medium hover:bg-white/10"
+                  style={{ color: r.color }}
+                >
+                  Killed by {r.name}
+                </button>
+              ))}
+              <button
+                onClick={() => { eliminate(elimFor, 'other'); setElimFor(null) }}
+                className="rounded-lg px-3 py-2 text-left text-gray-300 hover:bg-white/10"
+              >
+                Other / unknown
+              </button>
+              <button
+                onClick={() => setElimFor(null)}
+                className="mt-1 rounded-lg bg-white/10 px-3 py-2 hover:bg-white/15"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -99,7 +151,9 @@ function RoleCall({ role, round }) {
   // Actions already logged THIS night by earlier roles (night runs in order,
   // so any action by another role this round happened before this role's turn).
   const tonight = useGameStore(
-    useShallow((s) => s.actionLog.filter((a) => a.round === round && a.actor !== role.id)),
+    useShallow((s) =>
+      s.actionLog.filter((a) => a.round === round && a.kind !== 'elim' && a.actor !== role.id),
+    ),
   )
   const state = useGameStore.getState()
 

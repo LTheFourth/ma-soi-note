@@ -90,7 +90,11 @@ describe('Night', () => {
     render(<Night />)
     await user.click(screen.getByRole('button', { name: /skip/i }))  // -> summary
     await user.click(screen.getByRole('button', { name: /eliminate Bo/i }))
+    // dialog: pick which role killed them
+    await user.click(screen.getByRole('button', { name: /killed by Wolf/i }))
     expect(useGameStore.getState().eliminated).toContain('p2')
+    const elim = useGameStore.getState().actionLog.find((a) => a.kind === 'elim')
+    expect(elim).toMatchObject({ target: 'p2', reason: 'Wolf' })
     await user.click(screen.getByRole('button', { name: /finish night/i }))
     expect(useGameStore.getState().phase).toBe('day')
   })

@@ -108,6 +108,17 @@ describe('gameStore', () => {
     expect(selectSurvivors(g()).map(p => p.id)).toEqual(['p2', 'p3', 'p4'])
   })
 
+  it('eliminate logs an elim entry with reason and round', () => {
+    g().startGame(players, roles)
+    g().startNight()                       // round 1
+    g().eliminate('p2', 'Wolf')
+    const elim = g().actionLog.find((a) => a.kind === 'elim')
+    expect(elim).toMatchObject({ kind: 'elim', target: 'p2', reason: 'Wolf', round: 1 })
+    // idempotent: no duplicate elim entry
+    g().eliminate('p2', 'Wolf')
+    expect(g().actionLog.filter((a) => a.kind === 'elim')).toHaveLength(1)
+  })
+
   it('selectRoleById returns VILLAGER for villager id', () => {
     g().startGame(players, roles)
     expect(selectRoleById(g(), 'villager').name).toBe('Villager')

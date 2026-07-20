@@ -71,11 +71,18 @@ export const useGameStore = create(
 
       endNight: () => set({ phase: 'day' }),
 
-      eliminate: (playerId) =>
+      // reason: free text (day: e.g. "voted") or a role name (night: killer role).
+      eliminate: (playerId, reason = '') =>
         set((s) =>
           s.eliminated.includes(playerId)
             ? s
-            : { eliminated: [...s.eliminated, playerId] },
+            : {
+                eliminated: [...s.eliminated, playerId],
+                actionLog: [
+                  ...s.actionLog,
+                  { id: uid(), kind: 'elim', actor: null, type: 'elim', target: playerId, reason, round: s.round },
+                ],
+              },
         ),
 
       endGame: () => set({ ...initial }),

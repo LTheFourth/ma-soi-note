@@ -12,6 +12,15 @@ export default function HistorySidebar() {
       <ul className="max-h-[70vh] space-y-1 overflow-auto text-sm">
         {log.length === 0 && <li className="text-gray-500">No actions yet.</li>}
         {log.map((a) => {
+          if (a.kind === 'elim') {
+            return (
+              <li key={a.id} className="rounded bg-black/20 px-2 py-1 text-gray-300">
+                <span className="text-gray-500">R{a.round}</span>{' '}
+                <span className="text-base">🪦</span> {nameOf(a.target)}{' '}
+                <span className="text-gray-500">— {a.reason || 'eliminated'}</span>
+              </li>
+            )
+          }
           const actor = selectRoleById(state, a.actor)
           const targetRole = selectRoleById(state, state.assignments[a.target])
           return (

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useGameStore, selectRoleById } from '../store/gameStore.js'
 import TopBar from '../components/TopBar.jsx'
 import HistorySidebar from '../components/HistorySidebar.jsx'
-import ConfirmDialog from '../components/ConfirmDialog.jsx'
 
 export default function Day() {
   const players = useGameStore((s) => s.players)
@@ -15,6 +14,7 @@ export default function Day() {
 
   const [menuFor, setMenuFor] = useState(null) // playerId with open menu
   const [confirmFor, setConfirmFor] = useState(null)
+  const [reason, setReason] = useState('voted')
 
   return (
     <div className="mx-auto max-w-4xl p-4">
@@ -43,6 +43,7 @@ export default function Day() {
                     <button
                       onClick={() => {
                         setConfirmFor(p.id)
+                        setReason('voted')
                         setMenuFor(null)
                       }}
                       className="w-full rounded-md bg-red-600/80 px-2 py-1.5 text-sm hover:bg-red-600"
@@ -58,15 +59,45 @@ export default function Day() {
         <HistorySidebar />
       </div>
 
-      <ConfirmDialog
-        open={confirmFor !== null}
-        message={`Eliminate ${players.find((p) => p.id === confirmFor)?.name}?`}
-        onCancel={() => setConfirmFor(null)}
-        onConfirm={() => {
-          eliminate(confirmFor)
-          setConfirmFor(null)
-        }}
-      />
+      {confirmFor !== null && (
+        <div
+          className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-xs rounded-xl border border-white/10 bg-[#141a24] p-5">
+            <p className="mb-3">
+              Eliminate <strong>{players.find((p) => p.id === confirmFor)?.name}</strong>?
+            </p>
+            <label className="mb-4 block text-sm text-gray-400">
+              Reason
+              <input
+                aria-label="elimination reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-base text-gray-100 focus:border-indigo-500 focus:outline-none"
+              />
+            </label>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmFor(null)}
+                className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/15"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  eliminate(confirmFor, reason.trim() || 'voted')
+                  setConfirmFor(null)
+                }}
+                className="rounded-lg bg-red-600 px-3 py-2 font-medium hover:bg-red-500"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
