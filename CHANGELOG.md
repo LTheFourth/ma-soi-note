@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.0-beta — 2026-07-20
+
+### Features
+- **Preset role colors:** quick Red / Green / Blue / Orange swatches when adding a role (custom picker still available).
+- **Better link recognition:** linked players show "🔗 linked with <partner(s)>" text in the day grid, night lists, and the role action screen; the link dot's tooltip names partners too.
+
 ## v1.2.0-beta — 2026-07-20
 
 ### Features
