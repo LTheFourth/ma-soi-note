@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.4.0-beta — 2026-07-20
+
+### Features
+- **Override saved sets:** saving with an existing set's name overwrites it (no duplicate), and each saved set has a ⟳ button to overwrite it with the current selection.
+
 ## v1.3.0-beta — 2026-07-20
 
 ### Features
