@@ -260,7 +260,7 @@ export default function Night() {
 
   return (
     <div className="mx-auto max-w-4xl p-4">
-      <h1 className="mb-4 text-xl font-bold">🌙 Night — Round {round}</h1>
+      <h1 className="mb-4 pl-24 text-xl font-bold">🌙 Night — Round {round}</h1>
       {atSummary ? <NightSummary /> : <RoleCall role={nightRoles[cursor]} round={round} />}
     </div>
   )

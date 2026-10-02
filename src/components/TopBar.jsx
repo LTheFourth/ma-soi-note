@@ -1,6 +1,6 @@
 export default function TopBar({ phaseLabel, onNight, onEndGame }) {
   return (
-    <div className="sticky top-0 z-10 mb-4 flex items-center gap-2 border-b border-white/10 bg-[#0b0f17]/90 py-3 backdrop-blur">
+    <div className="sticky top-0 z-10 mb-4 flex items-center gap-2 border-b border-white/10 bg-[#0b0f17]/90 py-3 pl-24 backdrop-blur">
       <strong className="text-lg">{phaseLabel}</strong>
       <span className="flex-1" />
       {onNight && (

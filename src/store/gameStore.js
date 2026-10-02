@@ -16,6 +16,9 @@ const initial = {
   nightCursor: 0,
   actionLog: [],
   eliminated: [],
+  // Set when a death dragged others down with it, so the moderator is told
+  // rather than silently losing players. Cleared once acknowledged.
+  deathNotice: null,
 }
 
 export const useGameStore = create(
@@ -49,19 +52,22 @@ export const useGameStore = create(
 
       logAction: ({ actor, target, type, note = '', round }) =>
         set((s) => ({
-          actionLog: [...s.actionLog, { id: uid(), actor, target, type, note, round }],
+          actionLog: [...s.actionLog, { id: uid(), actor, target, type, note, round, phase: s.phase }],
         })),
 
       removeAction: (id) =>
         set((s) => ({ actionLog: s.actionLog.filter((a) => a.id !== id) })),
 
       // Link 2+ players into a group; each group gets its own color.
-      logLink: ({ actor, targets, round }) =>
+      logLink: ({ actor, targets, round, deadly = false }) =>
         set((s) => {
           const n = s.actionLog.filter((a) => a.type === 'link').length
           const color = LINK_COLORS[n % LINK_COLORS.length]
           return {
-            actionLog: [...s.actionLog, { id: uid(), type: 'link', actor, targets, color, round }],
+            actionLog: [
+              ...s.actionLog,
+              { id: uid(), type: 'link', actor, targets, color, round, phase: s.phase, deadly },
+            ],
           }
         }),
 
@@ -83,19 +89,63 @@ export const useGameStore = create(
 
       endNight: () => set({ phase: 'day' }),
 
-      // reason: free text (day: e.g. "voted") or a role name (night: killer role).
-      eliminate: (playerId, reason = '') =>
-        set((s) =>
-          s.eliminated.includes(playerId)
-            ? s
-            : {
-                eliminated: [...s.eliminated, playerId],
-                actionLog: [
-                  ...s.actionLog,
-                  { id: uid(), kind: 'elim', actor: null, type: 'elim', target: playerId, reason, round: s.round },
-                ],
-              },
-        ),
+      // reason: free text (day: e.g. "bị treo cổ") or a role name (night: killer
+      // role). note: anything the moderator wants to remember about the death.
+      //
+      // A player in a link marked deadly takes their partners with them, and
+      // the chain is followed (A-B, B-C kills all three). Knock-on deaths are
+      // reported through deathNotice so the moderator is never surprised.
+      eliminate: (playerId, reason = '', note = '') =>
+        set((s) => {
+          if (s.eliminated.includes(playerId)) return s
+          const nameOf = (pid) => s.players.find((p) => p.id === pid)?.name ?? '?'
+
+          const dead = new Set(s.eliminated)
+          const log = [...s.actionLog]
+          const kill = (pid, why, n, cause) => {
+            dead.add(pid)
+            log.push({
+              id: uid(), kind: 'elim', actor: null, type: 'elim', target: pid,
+              reason: why, note: n, cause, round: s.round, phase: s.phase,
+            })
+          }
+
+          kill(playerId, reason, note, 'direct')
+
+          const followers = []
+          const queue = [playerId]
+          while (queue.length) {
+            const cur = queue.shift()
+            for (const a of s.actionLog) {
+              if (a.type !== 'link' || !a.deadly || !a.targets?.includes(cur)) continue
+              for (const pid of a.targets) {
+                if (dead.has(pid)) continue
+                kill(pid, `died with ${nameOf(cur)}`, '', 'linked')
+                followers.push(pid)
+                queue.push(pid)
+              }
+            }
+          }
+
+          return {
+            eliminated: [...dead],
+            actionLog: log,
+            deathNotice: followers.length ? { primary: playerId, followers } : null,
+          }
+        }),
+
+      clearDeathNotice: () => set({ deathNotice: null }),
+
+      // Bring players back and drop the elimination entries that killed them.
+      // Links and role actions are left alone — only the deaths are undone.
+      undoDeaths: (playerIds) =>
+        set((s) => ({
+          eliminated: s.eliminated.filter((id) => !playerIds.includes(id)),
+          actionLog: s.actionLog.filter(
+            (a) => !(a.kind === 'elim' && playerIds.includes(a.target)),
+          ),
+          deathNotice: null,
+        })),
 
       endGame: () => {
         const s = get()

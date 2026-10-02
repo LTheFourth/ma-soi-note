@@ -23,6 +23,9 @@ export default function ActionPanel({ role, round }) {
 
   const [editTargetFor, setEditTargetFor] = useState(null)
   const [linkSel, setLinkSel] = useState(() => new Set())
+  // Cupid's pair dies together; Mason's and the Magician's do not. Asked per
+  // link rather than configured per role, so a custom role works too.
+  const [linkDeadly, setLinkDeadly] = useState(false)
 
   const roleActs = roleActions(role)
   const allowed = ACTION_TYPES.filter((t) => t.key !== 'link' && roleActs.includes(t.key))
@@ -35,8 +38,9 @@ export default function ActionPanel({ role, round }) {
   }
   const doLink = () => {
     if (linkSel.size < 2) return
-    logLink({ actor: role.id, targets: [...linkSel], round })
+    logLink({ actor: role.id, targets: [...linkSel], round, deadly: linkDeadly })
     setLinkSel(new Set())
+    setLinkDeadly(false)
   }
 
   return (
@@ -93,6 +97,16 @@ export default function ActionPanel({ role, round }) {
               </li>
             ))}
           </ul>
+          <label className="mb-2 flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-white/5">
+            <input
+              type="checkbox"
+              aria-label="die together"
+              checked={linkDeadly}
+              onChange={(e) => setLinkDeadly(e.target.checked)}
+              className="h-4 w-4 accent-pink-500"
+            />
+            <span>💔 Die together <span className="text-xs text-gray-400">(lovers)</span></span>
+          </label>
           <button
             onClick={doLink}
             disabled={linkSel.size < 2}

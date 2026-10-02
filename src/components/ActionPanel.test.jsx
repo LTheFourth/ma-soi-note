@@ -60,3 +60,42 @@ describe('ActionPanel', () => {
     expect(useGameStore.getState().actionLog).toHaveLength(0)
   })
 })
+
+describe('ActionPanel deadly links', () => {
+  beforeEach(() => {
+    useGameStore.getState().endGame()
+    useGameStore.getState().startGame(players, roles)
+    useGameStore.setState({ phase: 'night', round: 1 })
+  })
+
+  const linkRole = { id: 'cupid', name: 'Thần Tình Yêu', color: '#e0a', actions: ['link'] }
+
+  it('links without killing by default', async () => {
+    const user = userEvent.setup()
+    render(<ActionPanel role={linkRole} round={1} />)
+    await user.click(screen.getByRole('checkbox', { name: /link Al/i }))
+    await user.click(screen.getByRole('checkbox', { name: /link Bo/i }))
+    await user.click(screen.getByRole('button', { name: /link selected/i }))
+    expect(useGameStore.getState().actionLog.at(-1).deadly).toBe(false)
+  })
+
+  it('marks the link deadly when asked', async () => {
+    const user = userEvent.setup()
+    render(<ActionPanel role={linkRole} round={1} />)
+    await user.click(screen.getByRole('checkbox', { name: /link Al/i }))
+    await user.click(screen.getByRole('checkbox', { name: /link Bo/i }))
+    await user.click(screen.getByRole('checkbox', { name: /die together/i }))
+    await user.click(screen.getByRole('button', { name: /link selected/i }))
+    expect(useGameStore.getState().actionLog.at(-1).deadly).toBe(true)
+  })
+
+  it('forgets the deadly choice after a link is made', async () => {
+    const user = userEvent.setup()
+    render(<ActionPanel role={linkRole} round={1} />)
+    await user.click(screen.getByRole('checkbox', { name: /link Al/i }))
+    await user.click(screen.getByRole('checkbox', { name: /link Bo/i }))
+    await user.click(screen.getByRole('checkbox', { name: /die together/i }))
+    await user.click(screen.getByRole('button', { name: /link selected/i }))
+    expect(screen.getByRole('checkbox', { name: /die together/i })).not.toBeChecked()
+  })
+})

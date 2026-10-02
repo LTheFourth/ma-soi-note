@@ -16,9 +16,21 @@ export default function Day() {
   const endGame = useGameStore((s) => s.endGame)
   const state = useGameStore.getState()
 
-  const [menuFor, setMenuFor] = useState(null) // playerId with open menu
-  const [confirmFor, setConfirmFor] = useState(null)
+  // The player whose dialog is open. A dialog rather than a popover on the
+  // card: a popover anchored under a card covers the card below it.
+  const [openFor, setOpenFor] = useState(null)
   const [reason, setReason] = useState('voted')
+  const [note, setNote] = useState('')
+
+  const open = (p) => {
+    setOpenFor(p.id)
+    setReason('voted')
+    setNote('')
+  }
+  const close = () => setOpenFor(null)
+
+  const subject = players.find((p) => p.id === openFor)
+  const subjectRole = subject ? selectRoleById(state, assignments[subject.id]) : null
 
   return (
     <div className="mx-auto max-w-4xl p-4">
@@ -38,7 +50,7 @@ export default function Day() {
                   dead ? 'eliminated' : 'cursor-pointer hover:bg-white/10'
                 }`}
                 style={{ borderColor: role.color }}
-                onClick={() => !dead && setMenuFor(menuFor === p.id ? null : p.id)}
+                onClick={() => !dead && open(p)}
               >
                 <div className="mb-2 flex justify-center">
                   <RoleAvatar role={role} size="lg" dead={dead} />
@@ -54,23 +66,6 @@ export default function Day() {
                     🪦
                   </span>
                 )}
-                {menuFor === p.id && !dead && (
-                  <div
-                    className="absolute inset-x-2 top-full z-10 mt-1 rounded-lg border border-white/10 bg-[#141a24] p-1 shadow-lg"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={() => {
-                        setConfirmFor(p.id)
-                        setReason('voted')
-                        setMenuFor(null)
-                      }}
-                      className="w-full rounded-md bg-red-600/80 px-2 py-1.5 text-sm hover:bg-red-600"
-                    >
-                      Eliminate
-                    </button>
-                  </div>
-                )}
               </div>
             )
           })}
@@ -78,16 +73,38 @@ export default function Day() {
         <HistorySidebar />
       </div>
 
-      {confirmFor !== null && (
+      {subject && (
         <div
-          className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-20 flex items-center justify-center bg-black/70 p-4"
           role="dialog"
           aria-modal="true"
+          aria-label={`player ${subject.name}`}
+          onClick={close}
         >
-          <div className="w-full max-w-xs rounded-xl border border-white/10 bg-[#141a24] p-5">
-            <p className="mb-3">
-              Eliminate <strong>{players.find((p) => p.id === confirmFor)?.name}</strong>?
-            </p>
+          <div
+            className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#141a24] p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center gap-3">
+              <RoleAvatar role={subjectRole} size="lg" />
+              <div className="min-w-0">
+                <p className="truncate text-lg font-semibold">{subject.name}</p>
+                <p className="text-sm" style={{ color: subjectRole.color }}>{subjectRole.name}</p>
+                <LinkTag pid={subject.id} />
+              </div>
+            </div>
+
+            <label className="mb-3 block text-sm text-gray-400">
+              Note
+              <input
+                aria-label="note"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="claimed seer, acting odd…"
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-base text-gray-100 placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+              />
+            </label>
+
             <label className="mb-4 block text-sm text-gray-400">
               Reason
               <input
@@ -97,21 +114,22 @@ export default function Day() {
                 className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-base text-gray-100 focus:border-indigo-500 focus:outline-none"
               />
             </label>
+
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setConfirmFor(null)}
+                onClick={close}
                 className="rounded-lg bg-white/10 px-3 py-2 hover:bg-white/15"
               >
                 Cancel
               </button>
               <button
                 onClick={() => {
-                  eliminate(confirmFor, reason.trim() || 'voted')
-                  setConfirmFor(null)
+                  eliminate(subject.id, reason.trim() || 'voted', note.trim())
+                  close()
                 }}
-                className="rounded-lg bg-red-600 px-3 py-2 font-medium hover:bg-red-500"
+                className="rounded-lg bg-red-600 px-4 py-2 font-medium hover:bg-red-500"
               >
-                Confirm
+                Eliminate
               </button>
             </div>
           </div>

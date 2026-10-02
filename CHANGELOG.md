@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.9.0-beta — 2026-10-02
+
+### Features
+- **Linked players die together:** when a link is created you now say whether that pair dies together. Cupid's lovers do; Hội Kín and Ảo Thuật Gia links do not. Eliminating one member of a deadly link kills the rest, following chains, and a dialog tells you exactly who went down with them. That dialog has an **Undo** that takes the whole chain back, including the player you clicked — eliminations were permanent until now.
+- **Floating game log:** a 📜 Log button pinned top-left on every in-game screen opens the full log as a sheet, with a count of entries so far. The night screens had no log at all before, and on a phone the day history sat far below the grid.
+- **Richer log entries:** every entry records which phase it happened in, so the log reads "Night 2" and "Day 3" instead of a bare "R2" — you can tell a night kill from a day vote. Eliminations carry a free-text note, link entries show whether they were deadly, and every line shows the role's portrait.
+
+### Fixes
+- **Eliminate menu no longer covers the next player:** tapping a player on the day screen opened a small menu anchored under the card, which overlapped the card below it. It is now a dialog showing the player, their role, their link, a note field and the reason.
+
+### Changed
+- **Better Vietnamese for ten roles.** Pháp Sư Sói (was Phù Thủy Sói, which collided with Phù Thủy), Sói Hung Ác (was Sói Khổng Lồ — "big bad", not "giant"), Pháp Sư Câm, Trưởng Làng (a village, not a city), Kẻ Chủ Hòa, Người Hy Sinh, Kẻ Mang Bệnh, Sói Giả (a villager who only reads as a wolf), Thằng Khờ, and The Thing.
+- A test now asserts every role name resolves to its own portrait, which caught three roles whose names matched nothing.
+
 ## v1.8.0-beta — 2026-10-02
 
 ### Features

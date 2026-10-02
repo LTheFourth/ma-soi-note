@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_ROLES, TEAMS, rolesByTeam } from './defaultRoles.js'
-import { ROLE_IDS } from './art.js'
+import { ROLE_IDS, guessArt } from './art.js'
 
 describe('DEFAULT_ROLES', () => {
   it('covers every artwork except the unknown fallback', () => {
@@ -86,5 +86,18 @@ describe('rolesByTeam', () => {
 
   it('keeps every group even when empty', () => {
     expect(rolesByTeam([]).length).toBe(4)
+  })
+})
+
+describe('role names resolve to their own artwork', () => {
+  // guessArt powers both the artwork picker's search and the guess made when a
+  // role is typed by hand. If two names collide, one role silently steals the
+  // other's portrait — this catches that.
+  it.each(DEFAULT_ROLES.map((r) => [r.name, r.id]))('%s -> %s', (name, id) => {
+    expect(guessArt(name)).toBe(id)
+  })
+
+  it('also resolves the English name', () => {
+    for (const r of DEFAULT_ROLES) expect(guessArt(r.nameEn), r.id).toBe(r.id)
   })
 })

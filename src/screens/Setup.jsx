@@ -39,7 +39,7 @@ export default function Setup() {
 
   return (
     <div className="mx-auto max-w-3xl p-4">
-      <h1 className="text-2xl font-bold">Know the Roles</h1>
+      <h1 className="pl-24 text-2xl font-bold">Know the Roles</h1>
       <p className="mb-4 text-sm text-gray-400">Role {cursor + 1} of {roles.length}</p>
       <div className="grid gap-4 md:grid-cols-2">
         <div>

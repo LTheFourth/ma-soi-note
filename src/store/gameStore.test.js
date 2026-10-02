@@ -169,3 +169,120 @@ describe('gameStore', () => {
     expect(useLibraryStore.getState().lastGame.roleIds).toContain('wolf')
   })
 })
+
+describe('deadly links', () => {
+  beforeEach(() => {
+    g().endGame()
+    g().startGame(players, roles)
+    useGameStore.setState({ phase: 'night', round: 1 })
+  })
+
+  const elims = () => g().actionLog.filter((a) => a.kind === 'elim')
+
+  it('keeps whether a link is deadly', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().logLink({ actor: 'mason', targets: ['p3', 'p4'], round: 1, deadly: false })
+    const [lovers, masons] = g().actionLog.filter((a) => a.type === 'link')
+    expect(lovers.deadly).toBe(true)
+    expect(masons.deadly).toBe(false)
+  })
+
+  it('kills the partner of a deadly link', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().eliminate('p1', 'bị sói cắn')
+    expect(g().eliminated).toEqual(expect.arrayContaining(['p1', 'p2']))
+  })
+
+  it('leaves the partner of a plain link alive', () => {
+    g().logLink({ actor: 'mason', targets: ['p3', 'p4'], round: 1, deadly: false })
+    g().eliminate('p3', 'bị treo cổ')
+    expect(g().eliminated).toEqual(['p3'])
+  })
+
+  it('follows a chain of deadly links', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().logLink({ actor: 'cupid', targets: ['p2', 'p3'], round: 1, deadly: true })
+    g().eliminate('p1', 'bị sói cắn')
+    expect([...g().eliminated].sort()).toEqual(['p1', 'p2', 'p3'])
+  })
+
+  it('logs each knock-on death with its own reason', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().eliminate('p1', 'bị sói cắn')
+    const follower = elims().find((a) => a.target === 'p2')
+    expect(follower.reason).toMatch(/Al/)
+    expect(follower.cause).toBe('linked')
+  })
+
+  it('does not kill a partner who is already dead', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().eliminate('p2', 'bị treo cổ')
+    g().eliminate('p1', 'bị sói cắn')
+    expect(elims().filter((a) => a.target === 'p2')).toHaveLength(1)
+  })
+
+  it('raises a notice naming who died along', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().eliminate('p1', 'bị sói cắn')
+    expect(g().deathNotice.primary).toBe('p1')
+    expect(g().deathNotice.followers).toEqual(['p2'])
+  })
+
+  it('raises no notice for an ordinary death', () => {
+    g().eliminate('p1', 'bị treo cổ')
+    expect(g().deathNotice).toBeNull()
+  })
+
+  it('clears the notice once it is acknowledged', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().eliminate('p1', 'bị sói cắn')
+    g().clearDeathNotice()
+    expect(g().deathNotice).toBeNull()
+  })
+
+  it('undoes the whole chain, log entries included', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().eliminate('p1', 'bị sói cắn')
+    g().undoDeaths(['p1', 'p2'])
+    expect(g().eliminated).toEqual([])
+    expect(elims()).toHaveLength(0)
+    expect(g().deathNotice).toBeNull()
+  })
+
+  it('leaves the link itself alone when the deaths are undone', () => {
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    g().eliminate('p1', 'bị sói cắn')
+    g().undoDeaths(['p1', 'p2'])
+    expect(g().actionLog.filter((a) => a.type === 'link')).toHaveLength(1)
+  })
+})
+
+describe('log entries carry the phase they happened in', () => {
+  beforeEach(() => {
+    g().endGame()
+    g().startGame(players, roles)
+  })
+
+  it('stamps the phase on an action', () => {
+    useGameStore.setState({ phase: 'night', round: 2 })
+    g().logAction({ actor: 'seer', target: 'p1', type: 'info', note: '', round: 2 })
+    expect(g().actionLog.at(-1).phase).toBe('night')
+  })
+
+  it('stamps the phase on an elimination', () => {
+    useGameStore.setState({ phase: 'day', round: 2 })
+    g().eliminate('p1', 'bị treo cổ')
+    expect(g().actionLog.at(-1).phase).toBe('day')
+  })
+
+  it('stamps the phase on a link', () => {
+    useGameStore.setState({ phase: 'night', round: 1 })
+    g().logLink({ actor: 'cupid', targets: ['p1', 'p2'], round: 1, deadly: true })
+    expect(g().actionLog.at(-1).phase).toBe('night')
+  })
+
+  it('keeps a free-text note on an elimination', () => {
+    g().eliminate('p1', 'bị treo cổ', 'nhận là tiên tri')
+    expect(g().actionLog.at(-1).note).toBe('nhận là tiên tri')
+  })
+})

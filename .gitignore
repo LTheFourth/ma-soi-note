@@ -6,3 +6,6 @@ dev-dist
 # Full-size role portraits (~166 MB). Only the built src/art/*.webp is committed.
 # Back these up outside the repo; scripts/build-art.py cannot recreate them.
 src/art/portraits
+
+# Terminal Paste Image folder
+.cp-images/
