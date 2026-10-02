@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { uid } from '../lib/id.js'
+import { guessArt } from '../lib/art.js'
 
 export const useLibraryStore = create(
   persist(
@@ -23,6 +24,7 @@ export const useLibraryStore = create(
               id: uid(),
               name: name.trim(),
               color,
+              art: guessArt(name),
               callTiming: 'every',
               actions: ['bad', 'good', 'info'],
               canEliminate: false,

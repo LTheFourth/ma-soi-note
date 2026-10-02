@@ -147,4 +147,25 @@ describe('Night', () => {
     await user.click(screen.getByRole('button', { name: /finish night/i }))
     expect(useGameStore.getState().phase).toBe('day')
   })
+
+  it('shows an avatar beside the role being called', () => {
+    const { container } = render(<Night />)
+    expect(container.querySelector('h2 .role-avatar, h2 + * .role-avatar, .role-call-head .role-avatar'))
+      .toBeInTheDocument()
+  })
+
+  it('shows an avatar for each surviving player in the aside', () => {
+    const { container } = render(<Night />)
+    const list = container.querySelector('[aria-label="surviving players"]')
+    expect(list.querySelectorAll('.role-avatar')).toHaveLength(3)
+  })
+
+
+  it('shows the acting role avatar on a log line', () => {
+    useGameStore.getState().logAction({ actor: 'cupid', target: 'p2', type: 'bad', note: '', round: 1 })
+    const { container } = render(<Night />)
+    const log = container.querySelector('[aria-label="tonight so far"]')
+    expect(log.querySelector('.role-avatar')).toBeInTheDocument()
+  })
+
 })

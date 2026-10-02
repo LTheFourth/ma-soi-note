@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.5.0-beta — 2026-10-02
+
+### Features
+- **Role avatars:** every player card and player row now shows the artwork of that player's role, ringed and tinted in the role's own colour. Appears on the day grid, the night role call, the surviving-players list, the night summary and every log line.
+- **Automatic artwork:** typing a role name guesses its artwork from a 42-role table that understands English and Vietnamese, with or without diacritics ("Ma Sói", "ma soi", "Sói Trùm" all land correctly). Longest match wins, so "Sói Trùm" is not mistaken for "Sói".
+- **Artwork picker:** tap a role's avatar on the New Game screen to choose any of the 42 artworks, search by English or Vietnamese name, or clear it back to the role's initial.
+- **Livelier game screens:** player cards gained depth, a role-coloured glow, a hover lift and a staggered entrance; eliminated players now carry a 🪦 badge. All motion is disabled under `prefers-reduced-motion`.
+
+### Notes
+- Artwork files are not bundled yet. Until they are added to `src/art/`, every avatar shows the role's initial on a coloured disc — nothing breaks. See `docs/art-prompts.md` for the generation kit.
+- All artwork is original to this project; no third-party card art is used.
+
 ## v1.4.0-beta — 2026-07-20
 
 ### Features

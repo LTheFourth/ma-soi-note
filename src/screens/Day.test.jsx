@@ -38,4 +38,23 @@ describe('Day', () => {
     expect(useGameStore.getState().phase).toBe('night')
     expect(useGameStore.getState().round).toBe(1)
   })
+
+  it('shows a role avatar on every player card', () => {
+    const { container } = render(<Day />)
+    expect(container.querySelectorAll('.player-card .role-avatar')).toHaveLength(2)
+  })
+
+  it('marks the avatar of an eliminated player as dead', () => {
+    useGameStore.getState().eliminate('p2', 'voted')
+    const { container } = render(<Day />)
+    expect(container.querySelectorAll('.role-avatar[data-dead="true"]')).toHaveLength(1)
+  })
+
+
+  it('badges an eliminated player card with a grave marker', () => {
+    useGameStore.getState().eliminate('p2', 'voted')
+    render(<Day />)
+    expect(screen.getByLabelText('eliminated')).toBeInTheDocument()
+  })
+
 })

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useLibraryStore } from '../store/libraryStore.js'
 import { useGameStore } from '../store/gameStore.js'
 import RoleOrder from './RoleOrder.jsx'
+import RoleAvatar from '../components/RoleAvatar.jsx'
+import ArtPicker from '../components/ArtPicker.jsx'
 import { roleActions, roleTiming } from '../lib/actions.js'
 import { APP_VERSION } from '../version.js'
 
@@ -31,6 +33,7 @@ export default function NewGame() {
   const [rName, setRName] = useState('')
   const [rColor, setRColor] = useState('#4488cc')
   const [setName, setSetName] = useState('')
+  const [artFor, setArtFor] = useState(null) // role id whose artwork picker is open
 
   const toggle = (set, setter) => (id) => {
     const next = new Set(set)
@@ -66,6 +69,7 @@ export default function NewGame() {
         name: r.name,
         color: r.color,
         order: r.order,
+        art: r.art,
         callTiming: roleTiming(r),
         actions: roleActions(r),
         canEliminate: !!r.canEliminate,
@@ -79,6 +83,7 @@ export default function NewGame() {
         name: it.name ?? '?',
         color: it.color ?? '#4488cc',
         order: it.order,
+        art: it.art,
         callTiming: it.callTiming,
         actions: it.actions,
         canEliminate: it.canEliminate,
@@ -97,19 +102,29 @@ export default function NewGame() {
     )
   }
 
-  const Card = ({ name, color, selected, onToggle, onDelete }) => (
+  // `role` is passed for roles only; players get the plain card.
+  const Card = ({ name, role, selected, onToggle, onDelete }) => (
     <div className="relative">
       <button
         aria-pressed={selected}
         onClick={onToggle}
-        className={`flex w-full items-center gap-2 overflow-hidden rounded-xl border px-3 py-3 text-left transition active:scale-[0.98] ${
-          selected ? 'border-indigo-500 bg-indigo-600/20' : 'border-white/10 bg-white/5 hover:bg-white/10'
-        }`}
+        className={`flex w-full items-center gap-2 overflow-hidden rounded-xl border py-3 pr-3 text-left transition active:scale-[0.98] ${
+          role ? 'pl-13' : 'pl-3'
+        } ${selected ? 'border-indigo-500 bg-indigo-600/20' : 'border-white/10 bg-white/5 hover:bg-white/10'}`}
       >
-        {color && <span className="h-6 w-1.5 shrink-0 rounded-full" style={{ background: color }} />}
         <span className="min-w-0 flex-1 truncate">{name}</span>
         <span aria-hidden="true" className={`shrink-0 ${selected ? 'text-indigo-300' : 'text-transparent'}`}>✓</span>
       </button>
+      {role && (
+        <button
+          aria-label={`artwork for ${name}`}
+          title="Change artwork"
+          onClick={() => setArtFor(role.id)}
+          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full transition hover:scale-110 active:scale-95"
+        >
+          <RoleAvatar role={role} size="md" />
+        </button>
+      )}
       <button
         aria-label={`delete ${name}`}
         onClick={onDelete}
@@ -183,7 +198,7 @@ export default function NewGame() {
             <Card
               key={r.id}
               name={r.name}
-              color={r.color}
+              role={r}
               selected={selRoles.has(r.id)}
               onToggle={() => toggle(selRoles, setSelRoles)(r.id)}
               onDelete={() => deleteRole(r.id)}
@@ -286,6 +301,14 @@ export default function NewGame() {
           </button>
         </div>
       </section>
+
+      {artFor && (
+        <ArtPicker
+          role={roles.find((r) => r.id === artFor)}
+          onPick={(art) => updateRole(artFor, { art })}
+          onClose={() => setArtFor(null)}
+        />
+      )}
 
       <button
         className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-lg font-semibold hover:bg-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"

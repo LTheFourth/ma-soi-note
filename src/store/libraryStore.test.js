@@ -137,3 +137,30 @@ describe('libraryStore', () => {
     expect(useLibraryStore.getState().roleSets[0].items).toEqual([{ roleId: 'r2' }])
   })
 })
+
+describe('libraryStore role art', () => {
+  beforeEach(reset)
+
+  it('guesses art from the role name when the role is created', () => {
+    useLibraryStore.getState().addRole('Ma Sói', '#c00')
+    expect(useLibraryStore.getState().roles[0].art).toBe('werewolf')
+  })
+
+  it('leaves art unset for a name it cannot place', () => {
+    useLibraryStore.getState().addRole('Zzzz', '#c00')
+    expect(useLibraryStore.getState().roles[0].art).toBeUndefined()
+  })
+
+  it('keeps a manually picked art when the role is renamed', () => {
+    useLibraryStore.getState().addRole('Ma Sói', '#c00')
+    const id = useLibraryStore.getState().roles[0].id
+    useLibraryStore.getState().updateRole(id, { art: 'ghost' })
+    useLibraryStore.getState().updateRole(id, { name: 'Tiên Tri' })
+    expect(useLibraryStore.getState().roles[0].art).toBe('ghost')
+  })
+
+  it('restores art through upsertRole', () => {
+    useLibraryStore.getState().upsertRole({ id: 'x1', name: 'Seer', color: '#06c', art: 'seer' })
+    expect(useLibraryStore.getState().roles[0].art).toBe('seer')
+  })
+})

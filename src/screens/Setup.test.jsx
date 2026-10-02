@@ -41,4 +41,10 @@ describe('Setup', () => {
     expect(s.phase).toBe('day')
     expect(s.assignments['p3']).toBe('villager')
   })
+
+  it('shows the avatar of the role being assigned', () => {
+    const { container } = render(<Setup />)
+    expect(container.querySelector('.role-avatar')).toBeInTheDocument()
+  })
+
 })

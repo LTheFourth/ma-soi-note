@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useGameStore } from '../store/gameStore.js'
 import ActionPanel from '../components/ActionPanel.jsx'
+import RoleAvatar from '../components/RoleAvatar.jsx'
 
 export default function Setup() {
   const roles = useGameStore((s) => s.roles)
@@ -42,7 +43,10 @@ export default function Setup() {
       <p className="mb-4 text-sm text-gray-400">Role {cursor + 1} of {roles.length}</p>
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <h2 className="text-xl font-semibold" style={{ color: role.color }}>{role.name}</h2>
+          <div className="mb-1 flex items-center gap-3">
+            <RoleAvatar role={role} size="lg" />
+            <h2 className="text-xl font-semibold" style={{ color: role.color }}>{role.name}</h2>
+          </div>
           <p className="mb-2 text-sm text-gray-400">Select the player(s) with this role:</p>
           <ul className="space-y-1.5">
             {selectable.map((p) => (

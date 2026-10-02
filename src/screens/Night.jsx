@@ -7,6 +7,7 @@ import ActionPanel from '../components/ActionPanel.jsx'
 import LinkDot from '../components/LinkDot.jsx'
 import LinkTag from '../components/LinkTag.jsx'
 import { actionIcon } from '../lib/actions.js'
+import RoleAvatar from '../components/RoleAvatar.jsx'
 
 const navBtn = 'rounded-lg px-3 py-2 text-sm active:scale-95 disabled:opacity-30'
 
@@ -20,6 +21,7 @@ function LogLine({ action, onDelete }) {
     const role = selectRoleById(state, action.actor)
     return (
       <li className="flex items-center gap-1.5 py-0.5">
+        <RoleAvatar role={role} size="xs" />
         <span style={{ color: role.color }}>{role.name}</span>
         <span className="text-base" style={{ color: action.color }}>🔗</span>
         <span>{action.targets.map(nameOf).join(' + ')}</span>
@@ -31,6 +33,7 @@ function LogLine({ action, onDelete }) {
     const targetRole = selectRoleById(state, state.assignments[action.target])
     return (
       <li className="flex items-center gap-1.5 py-0.5 text-gray-300">
+        <RoleAvatar role={targetRole} size="xs" dead />
         <span className="text-base">🪦</span>
         <span>{nameOf(action.target)}</span>
         <LinkDot pid={action.target} />
@@ -43,6 +46,7 @@ function LogLine({ action, onDelete }) {
   const role = selectRoleById(state, action.actor)
   return (
     <li className="flex items-center gap-1.5 py-0.5">
+      <RoleAvatar role={role} size="xs" />
       <span style={{ color: role.color }}>{role.name}</span>
       <span className="text-base">{actionIcon(action.type)}</span>
       <span>{nameOf(action.target)}</span>
@@ -95,9 +99,12 @@ function NightSummary() {
               key={p.id}
               className="flex items-center justify-between gap-2 rounded-lg bg-black/25 px-3 py-2"
             >
-              <span>
-                {p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span>{' '}
-                <LinkTag pid={p.id} />
+              <span className="flex items-center gap-2">
+                <RoleAvatar role={selectRoleById(state, state.assignments[p.id])} size="sm" />
+                <span>
+                  {p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span>{' '}
+                  <LinkTag pid={p.id} />
+                </span>
               </span>
               <button
                 onClick={() => setElimFor(p.id)}
@@ -183,10 +190,13 @@ function RoleCall({ role, round }) {
   return (
     <div className="grid gap-4 md:grid-cols-[1fr_260px]">
       <div>
-        <h2 className="mb-2 text-2xl font-bold" style={{ color: role.color }}>
-          {role.name}
-          {roleDead && <span className="ml-2 align-middle text-sm font-semibold text-red-400">[DEAD]</span>}
-        </h2>
+        <div className="role-call-head mb-2 flex items-center gap-3">
+          <RoleAvatar role={role} size="lg" dead={roleDead} />
+          <h2 className="text-2xl font-bold" style={{ color: role.color }}>
+            {role.name}
+            {roleDead && <span className="ml-2 align-middle text-sm font-semibold text-red-400">[DEAD]</span>}
+          </h2>
+        </div>
         {roleDead ? (
           <>
             <p className="text-gray-400">No living player holds this role — skip.</p>
@@ -225,11 +235,14 @@ function RoleCall({ role, round }) {
         </div>
         <div>
           <h3 className="mb-1 font-semibold text-gray-300">Surviving players</h3>
-          <ul className="space-y-0.5">
+          <ul aria-label="surviving players" className="space-y-1">
             {survivors.map((p) => (
-              <li key={p.id}>
-                {p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span>{' '}
-                <LinkTag pid={p.id} />
+              <li key={p.id} className="flex items-center gap-2">
+                <RoleAvatar role={selectRoleById(state, state.assignments[p.id])} size="sm" />
+                <span>
+                  {p.name} <span className="text-xs text-gray-400">({selectRoleById(state, state.assignments[p.id]).name})</span>{' '}
+                  <LinkTag pid={p.id} />
+                </span>
               </li>
             ))}
           </ul>

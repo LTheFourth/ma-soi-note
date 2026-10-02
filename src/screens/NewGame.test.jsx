@@ -119,4 +119,30 @@ describe('NewGame', () => {
     expect(useGameStore.getState().phase).toBe('setup')
     expect(useGameStore.getState().players).toHaveLength(1)
   })
+
+  it('a saved set round-trips the role art', async () => {
+    const user = userEvent.setup()
+    useLibraryStore.getState().addRole('Tiên Tri', '#06c')
+    render(<NewGame />)
+    await user.click(screen.getByRole('button', { name: 'Tiên Tri' }))
+    await user.type(screen.getByPlaceholderText(/save selected roles/i), 'ArtSet')
+    await user.click(screen.getByRole('button', { name: /save set/i }))
+    expect(useLibraryStore.getState().roleSets[0].items[0].art).toBe('seer')
+
+    await user.click(screen.getByRole('button', { name: /delete Tiên Tri/i }))
+    await user.click(screen.getByRole('button', { name: /^ArtSet/ }))
+    const restored = useLibraryStore.getState().roles.find((r) => r.name === 'Tiên Tri')
+    expect(restored.art).toBe('seer')
+  })
+
+
+  it('picks role artwork from the role card', async () => {
+    const user = userEvent.setup()
+    render(<NewGame />)
+    await user.click(screen.getByRole('button', { name: /artwork for Wolf/i }))
+    await user.click(screen.getByRole('button', { name: 'dire wolf' }))
+    expect(useLibraryStore.getState().roles[0].art).toBe('dire-wolf')
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
 })

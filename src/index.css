@@ -24,3 +24,45 @@
   background: linear-gradient(to bottom right, transparent 47%, #ef4444 48%, #ef4444 52%, transparent 53%);
   pointer-events: none;
 }
+
+/* --- Role avatars ------------------------------------------------------- */
+.role-avatar[data-dead='true'] { filter: grayscale(1) opacity(0.5); }
+
+/* --- Game-screen card polish -------------------------------------------- */
+.player-card {
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015));
+  transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+}
+.player-card:not(.eliminated):hover { transform: translateY(-2px); }
+.player-card:not(.eliminated):active { transform: scale(0.98); }
+
+/* Staggered entrance for the day grid. Capped at 12 so a big table does not
+   wait on a long cascade. */
+.player-card { animation: card-in 260ms ease-out both; }
+.player-card:nth-child(1) { animation-delay: 0ms }
+.player-card:nth-child(2) { animation-delay: 30ms }
+.player-card:nth-child(3) { animation-delay: 60ms }
+.player-card:nth-child(4) { animation-delay: 90ms }
+.player-card:nth-child(5) { animation-delay: 120ms }
+.player-card:nth-child(6) { animation-delay: 150ms }
+.player-card:nth-child(7) { animation-delay: 180ms }
+.player-card:nth-child(8) { animation-delay: 210ms }
+.player-card:nth-child(9) { animation-delay: 240ms }
+.player-card:nth-child(10) { animation-delay: 270ms }
+.player-card:nth-child(11) { animation-delay: 300ms }
+.player-card:nth-child(n + 12) { animation-delay: 330ms }
+
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-card,
+  .player-card:not(.eliminated):hover,
+  .player-card:not(.eliminated):active {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+}

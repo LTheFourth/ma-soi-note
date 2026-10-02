@@ -5,6 +5,7 @@ import HistorySidebar from '../components/HistorySidebar.jsx'
 import DayTimer from '../components/DayTimer.jsx'
 import LinkDot from '../components/LinkDot.jsx'
 import LinkTag from '../components/LinkTag.jsx'
+import RoleAvatar from '../components/RoleAvatar.jsx'
 
 export default function Day() {
   const players = useGameStore((s) => s.players)
@@ -39,9 +40,20 @@ export default function Day() {
                 style={{ borderColor: role.color }}
                 onClick={() => !dead && setMenuFor(menuFor === p.id ? null : p.id)}
               >
+                <div className="mb-2 flex justify-center">
+                  <RoleAvatar role={role} size="lg" dead={dead} />
+                </div>
                 <div className="font-medium">{p.name} <LinkDot pid={p.id} /></div>
                 <div className="text-xs text-gray-400">{role.name}</div>
                 <div className="mt-0.5"><LinkTag pid={p.id} /></div>
+                {dead && (
+                  <span
+                    aria-label="eliminated"
+                    className="absolute -right-1 -top-1 rounded-full border border-white/15 bg-[#141a24] px-1 text-sm"
+                  >
+                    🪦
+                  </span>
+                )}
                 {menuFor === p.id && !dead && (
                   <div
                     className="absolute inset-x-2 top-full z-10 mt-1 rounded-lg border border-white/10 bg-[#141a24] p-1 shadow-lg"
