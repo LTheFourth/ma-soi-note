@@ -11,13 +11,23 @@ const FILES = import.meta.glob('../art/*.{webp,png,svg}', {
   import: 'default',
 })
 
-// '../art/dire-wolf.webp' -> 'dire-wolf'
-export const ART = Object.fromEntries(
-  Object.entries(FILES).map(([path, url]) => [
-    path.replace(/^.*\//, '').replace(/\.[^.]+$/, ''),
-    url,
-  ]),
-)
+// Generated raster art wins over the built-in SVG for the same id, so dropping
+// werewolf.webp into src/art/ replaces the drawn silhouette with no code change.
+const RANK = { webp: 3, png: 2, svg: 1 }
+
+// { '../art/dire-wolf.webp': url } -> { 'dire-wolf': url }, best file per id.
+export function pickBest(files) {
+  const best = {}
+  for (const [path, url] of Object.entries(files)) {
+    const file = path.replace(/^.*\//, '')
+    const id = file.replace(/\.[^.]+$/, '')
+    const rank = RANK[file.split('.').pop().toLowerCase()] ?? 0
+    if (!best[id] || rank > best[id].rank) best[id] = { url, rank }
+  }
+  return Object.fromEntries(Object.entries(best).map(([id, v]) => [id, v.url]))
+}
+
+export const ART = pickBest(FILES)
 
 export const ART_IDS = Object.keys(ART).sort()
 

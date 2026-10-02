@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { guessArt, artUrl, normalizeName, ART_IDS } from './art.js'
+import { guessArt, artUrl, normalizeName, pickBest, ART_IDS, ROLE_IDS } from './art.js'
 
 describe('normalizeName', () => {
   it('lowercases and strips Vietnamese diacritics', () => {
@@ -65,5 +65,36 @@ describe('artUrl', () => {
 
   it('returns a url for every id it advertises in ART_IDS', () => {
     for (const id of ART_IDS) expect(artUrl(id)).toBeTruthy()
+  })
+})
+
+describe('the shipped art set', () => {
+  it('has a file for every planned role id', () => {
+    const missing = ROLE_IDS.filter((id) => !artUrl(id))
+    expect(missing).toEqual([])
+  })
+
+  it('ships no file that is not a planned role id', () => {
+    expect(ART_IDS.filter((id) => !ROLE_IDS.includes(id))).toEqual([])
+  })
+})
+
+describe('pickBest', () => {
+  it('prefers a generated raster over the built-in svg for the same id', () => {
+    const map = pickBest({ '../art/werewolf.svg': 'S', '../art/werewolf.webp': 'W' })
+    expect(map.werewolf).toBe('W')
+  })
+
+  it('does not care which order the glob lists them in', () => {
+    const map = pickBest({ '../art/werewolf.webp': 'W', '../art/werewolf.svg': 'S' })
+    expect(map.werewolf).toBe('W')
+  })
+
+  it('prefers webp over png', () => {
+    expect(pickBest({ '../art/seer.png': 'P', '../art/seer.webp': 'W' }).seer).toBe('W')
+  })
+
+  it('keeps the svg when it is the only file', () => {
+    expect(pickBest({ '../art/ghost.svg': 'S' }).ghost).toBe('S')
   })
 })
