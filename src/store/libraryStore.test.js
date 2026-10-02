@@ -1,10 +1,17 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useLibraryStore } from './libraryStore.js'
+import { DEFAULT_ROLES } from '../lib/defaultRoles.js'
 
-const reset = () =>
+const reset = () => {
   useLibraryStore.setState({
-    players: [], roles: [], roleSets: [], lastGame: { playerIds: [], roleIds: [] },
+    players: [], roleSets: [], lastGame: { playerIds: [], roleIds: [] },
   })
+  useLibraryStore.getState().resetAllRoles()
+}
+
+// The library always holds the built-ins; these tests are about roles the
+// moderator types, which sort after them.
+const custom = () => useLibraryStore.getState().roles.filter((r) => !r.builtin)
 
 describe('libraryStore', () => {
   beforeEach(reset)
@@ -21,17 +28,19 @@ describe('libraryStore', () => {
   it('adds a role with defaults (order by index, every night, default actions)', () => {
     useLibraryStore.getState().addRole('Wolf', '#c00')
     useLibraryStore.getState().addRole('Seer', '#06c')
-    const roles = useLibraryStore.getState().roles
-    expect(roles[0]).toMatchObject({ name: 'Wolf', color: '#c00', order: 0, callTiming: 'every' })
-    expect(roles[0].actions).toEqual(['bad', 'good', 'info'])
-    expect(roles[1].order).toBe(1)
+    const [wolf, seer] = custom()
+    expect(wolf).toMatchObject({ name: 'Wolf', color: '#c00', callTiming: 'every', team: 'custom' })
+    expect(wolf.actions).toEqual(['bad', 'good', 'info'])
+    // Custom roles sort after every built-in.
+    expect(wolf.order).toBe(DEFAULT_ROLES.length)
+    expect(seer.order).toBe(DEFAULT_ROLES.length + 1)
   })
 
   it('updateRole patches fields', () => {
-    useLibraryStore.getState().addRole('Cupid', '#e0a')
-    const id = useLibraryStore.getState().roles[0].id
+    useLibraryStore.getState().addRole('Vai La', '#e0a')
+    const id = custom()[0].id
     useLibraryStore.getState().updateRole(id, { callTiming: 'first' })
-    expect(useLibraryStore.getState().roles[0].callTiming).toBe('first')
+    expect(custom()[0].callTiming).toBe('first')
   })
 
   it('reorderRoles rewrites order to match given id sequence', () => {
@@ -50,11 +59,10 @@ describe('libraryStore', () => {
     useLibraryStore.getState().addRole('A', '#111')
     useLibraryStore.getState().addRole('B', '#222')
     useLibraryStore.getState().addRole('C', '#333')
-    const [a, b, c] = useLibraryStore.getState().roles
+    const [a, b, c] = custom()
     useLibraryStore.getState().reorderRoles([c.id, a.id])
-    const roles = useLibraryStore.getState().roles
-    expect(roles).toHaveLength(3)
-    const byId = Object.fromEntries(roles.map((r) => [r.id, r]))
+    expect(custom()).toHaveLength(3)
+    const byId = Object.fromEntries(custom().map((r) => [r.id, r]))
     expect(byId[c.id].order).toBe(0)
     expect(byId[a.id].order).toBe(1)
     expect(byId[b.id]).toMatchObject({ name: 'B', order: b.order })
@@ -76,11 +84,10 @@ describe('libraryStore', () => {
   it('removeRole removes the role by id', () => {
     useLibraryStore.getState().addRole('A', '#111')
     useLibraryStore.getState().addRole('B', '#222')
-    const [a, b] = useLibraryStore.getState().roles
+    const [a, b] = custom()
     useLibraryStore.getState().removeRole(a.id)
-    const roles = useLibraryStore.getState().roles
-    expect(roles.map((r) => r.id)).not.toContain(a.id)
-    expect(roles.map((r) => r.id)).toContain(b.id)
+    expect(custom().map((r) => r.id)).not.toContain(a.id)
+    expect(custom().map((r) => r.id)).toContain(b.id)
   })
 
   it('reorderRoles gives the listed ids unique contiguous orders 0..n-1', () => {
@@ -140,27 +147,125 @@ describe('libraryStore', () => {
 
 describe('libraryStore role art', () => {
   beforeEach(reset)
+  const custom = () => useLibraryStore.getState().roles.filter((r) => !r.builtin)
 
   it('guesses art from the role name when the role is created', () => {
-    useLibraryStore.getState().addRole('Ma Sói', '#c00')
-    expect(useLibraryStore.getState().roles[0].art).toBe('werewolf')
+    useLibraryStore.getState().addRole('Ma Sói Hai', '#c00')
+    expect(custom()[0].art).toBe('werewolf')
   })
 
   it('leaves art unset for a name it cannot place', () => {
     useLibraryStore.getState().addRole('Zzzz', '#c00')
-    expect(useLibraryStore.getState().roles[0].art).toBeUndefined()
+    expect(custom()[0].art).toBeUndefined()
   })
 
   it('keeps a manually picked art when the role is renamed', () => {
-    useLibraryStore.getState().addRole('Ma Sói', '#c00')
-    const id = useLibraryStore.getState().roles[0].id
+    useLibraryStore.getState().addRole('Ma Sói Hai', '#c00')
+    const id = custom()[0].id
     useLibraryStore.getState().updateRole(id, { art: 'ghost' })
-    useLibraryStore.getState().updateRole(id, { name: 'Tiên Tri' })
-    expect(useLibraryStore.getState().roles[0].art).toBe('ghost')
+    useLibraryStore.getState().updateRole(id, { name: 'Tiên Tri Hai' })
+    expect(custom()[0].art).toBe('ghost')
   })
 
-  it('restores art through upsertRole', () => {
-    useLibraryStore.getState().upsertRole({ id: 'x1', name: 'Seer', color: '#06c', art: 'seer' })
-    expect(useLibraryStore.getState().roles[0].art).toBe('seer')
+  it('restores a deleted custom role through upsertRole', () => {
+    useLibraryStore.getState().upsertRole({ id: 'x1', name: 'Vai Cu', color: '#06c', art: 'seer' })
+    expect(custom()[0]).toMatchObject({ id: 'x1', art: 'seer', team: 'custom' })
   })
+})
+
+describe('libraryStore built-in roles', () => {
+  beforeEach(() => useLibraryStore.setState({
+    players: [], roleOverrides: {}, customRoles: [], roleSets: [],
+    lastGame: { playerIds: [], roleIds: [] },
+    roles: useLibraryStore.getState().roles,
+  }, false))
+
+  const roles = () => useLibraryStore.getState().roles
+  const byId = (id) => roles().find((r) => r.id === id)
+
+  it('starts with every built-in role present', () => {
+    useLibraryStore.getState().resetAllRoles()
+    expect(roles()).toHaveLength(DEFAULT_ROLES.length)
+    expect(byId('werewolf').name).toBe('Ma Sói')
+  })
+
+  it('refuses to delete a built-in role', () => {
+    useLibraryStore.getState().resetAllRoles()
+    useLibraryStore.getState().removeRole('werewolf')
+    expect(byId('werewolf')).toBeDefined()
+  })
+
+  it('adds a hand-typed role to the custom group and deletes it again', () => {
+    useLibraryStore.getState().resetAllRoles()
+    useLibraryStore.getState().addRole('Vai Của Tôi', '#123456')
+    const mine = roles().find((r) => r.name === 'Vai Của Tôi')
+    expect(mine.team).toBe('custom')
+    expect(mine.builtin).toBeFalsy()
+    useLibraryStore.getState().removeRole(mine.id)
+    expect(roles().find((r) => r.name === 'Vai Của Tôi')).toBeUndefined()
+  })
+
+  it('edits a built-in as an override instead of a copy', () => {
+    useLibraryStore.getState().resetAllRoles()
+    useLibraryStore.getState().updateRole('werewolf', { color: '#000000' })
+    expect(byId('werewolf').color).toBe('#000000')
+    expect(roles().filter((r) => r.id === 'werewolf')).toHaveLength(1)
+    expect(useLibraryStore.getState().roleOverrides.werewolf).toEqual({ color: '#000000' })
+  })
+
+  it('resets an edited built-in back to its shipped values', () => {
+    useLibraryStore.getState().resetAllRoles()
+    useLibraryStore.getState().updateRole('werewolf', { color: '#000000', name: 'Sói' })
+    useLibraryStore.getState().resetRole('werewolf')
+    expect(byId('werewolf').color).toBe('#ef4444')
+    expect(byId('werewolf').name).toBe('Ma Sói')
+  })
+
+  it('reports whether a built-in has been edited', () => {
+    useLibraryStore.getState().resetAllRoles()
+    expect(useLibraryStore.getState().roleOverrides.seer).toBeUndefined()
+    useLibraryStore.getState().updateRole('seer', { color: '#000000' })
+    expect(useLibraryStore.getState().roleOverrides.seer).toBeDefined()
+  })
+
+  it('keeps built-ins before custom roles', () => {
+    useLibraryStore.getState().resetAllRoles()
+    useLibraryStore.getState().addRole('Zzz', '#123456')
+    const names = roles().map((r) => r.id)
+    expect(names.indexOf('werewolf')).toBeLessThan(names.length - 1)
+    expect(roles()[roles().length - 1].name).toBe('Zzz')
+  })
+
+  it('stores a reordering of a built-in as an override', () => {
+    useLibraryStore.getState().resetAllRoles()
+    useLibraryStore.getState().reorderRoles(['seer', 'werewolf'])
+    expect(byId('seer').order).toBe(0)
+    expect(byId('werewolf').order).toBe(1)
+  })
+
+  it('applies a saved set to a built-in without duplicating it', () => {
+    useLibraryStore.getState().resetAllRoles()
+    useLibraryStore.getState().upsertRole({ id: 'werewolf', name: 'Ma Sói', color: '#0f0f0f', order: 3 })
+    expect(roles().filter((r) => r.id === 'werewolf')).toHaveLength(1)
+    expect(byId('werewolf').color).toBe('#0f0f0f')
+  })
+
+  it('records no override when a saved set matches the shipped values', () => {
+    useLibraryStore.getState().resetAllRoles()
+    const wolf = DEFAULT_ROLES.find((r) => r.id === 'werewolf')
+    useLibraryStore.getState().upsertRole({
+      id: 'werewolf', name: wolf.name, color: wolf.color, order: wolf.order,
+      callTiming: wolf.callTiming, actions: [...wolf.actions], canEliminate: wolf.canEliminate,
+      art: wolf.art,
+    })
+    expect(useLibraryStore.getState().roleOverrides.werewolf).toBeUndefined()
+  })
+
+  it('records only the fields a saved set actually changes', () => {
+    useLibraryStore.getState().resetAllRoles()
+    const wolf = DEFAULT_ROLES.find((r) => r.id === 'werewolf')
+    useLibraryStore.getState().upsertRole({ id: 'werewolf', name: wolf.name, color: '#010203' })
+    expect(useLibraryStore.getState().roleOverrides.werewolf).toEqual({ color: '#010203' })
+  })
+
 })

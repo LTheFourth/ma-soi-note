@@ -5,6 +5,7 @@ import RoleOrder from './RoleOrder.jsx'
 import RoleAvatar from '../components/RoleAvatar.jsx'
 import ArtPicker from '../components/ArtPicker.jsx'
 import { roleActions, roleTiming } from '../lib/actions.js'
+import { rolesByTeam } from '../lib/defaultRoles.js'
 import { APP_VERSION } from '../version.js'
 
 const PRESET_COLORS = [
@@ -20,8 +21,8 @@ const addBtnCls = 'rounded-lg bg-white/10 px-3 py-2 text-sm hover:bg-white/15 ac
 
 export default function NewGame() {
   const {
-    players, roles, lastGame, roleSets,
-    addPlayer, removePlayer, addRole, removeRole, updateRole, upsertRole, reorderRoles,
+    players, roles, roleOverrides, lastGame, roleSets,
+    addPlayer, removePlayer, addRole, removeRole, updateRole, resetRole, upsertRole, reorderRoles,
     saveRoleSet, updateRoleSet, deleteRoleSet,
   } = useLibraryStore()
   const startGame = useGameStore((s) => s.startGame)
@@ -34,6 +35,9 @@ export default function NewGame() {
   const [rColor, setRColor] = useState('#4488cc')
   const [setName, setSetName] = useState('')
   const [artFor, setArtFor] = useState(null) // role id whose artwork picker is open
+  const [openGroups, setOpenGroups] = useState({}) // team key -> explicit open/closed
+
+  const groups = rolesByTeam(roles)
 
   const toggle = (set, setter) => (id) => {
     const next = new Set(set)
@@ -103,7 +107,7 @@ export default function NewGame() {
   }
 
   // `role` is passed for roles only; players get the plain card.
-  const Card = ({ name, role, selected, onToggle, onDelete }) => (
+  const Card = ({ name, role, selected, onToggle, onDelete, onReset }) => (
     <div className="relative">
       <button
         aria-pressed={selected}
@@ -125,13 +129,25 @@ export default function NewGame() {
           <RoleAvatar role={role} size="md" />
         </button>
       )}
-      <button
-        aria-label={`delete ${name}`}
-        onClick={onDelete}
-        className="absolute -right-1.5 -top-1.5 rounded-full border border-white/10 bg-[#141a24] px-1.5 text-xs text-red-400 opacity-80 hover:opacity-100"
-      >
-        ✕
-      </button>
+      {onDelete && (
+        <button
+          aria-label={`delete ${name}`}
+          onClick={onDelete}
+          className="absolute -right-1.5 -top-1.5 rounded-full border border-white/10 bg-[#141a24] px-1.5 text-xs text-red-400 opacity-80 hover:opacity-100"
+        >
+          ✕
+        </button>
+      )}
+      {onReset && (
+        <button
+          aria-label={`reset ${name}`}
+          title="Restore the shipped settings"
+          onClick={onReset}
+          className="absolute -right-1.5 -top-1.5 rounded-full border border-white/10 bg-[#141a24] px-1.5 text-xs text-indigo-300 opacity-80 hover:opacity-100"
+        >
+          ↺
+        </button>
+      )}
     </div>
   )
 
@@ -186,24 +202,77 @@ export default function NewGame() {
       </section>
 
       <section className="mb-6">
-        <SectionHead
-          title="Roles"
-          count={selRoles.size}
-          total={roles.length}
-          onAll={() => setSelRoles(new Set(roles.map((r) => r.id)))}
-          onClear={() => setSelRoles(new Set())}
-        />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {roles.map((r) => (
-            <Card
-              key={r.id}
-              name={r.name}
-              role={r}
-              selected={selRoles.has(r.id)}
-              onToggle={() => toggle(selRoles, setSelRoles)(r.id)}
-              onDelete={() => deleteRole(r.id)}
-            />
-          ))}
+        <div className="mb-2 flex items-center gap-2">
+          <h2 className="font-semibold text-gray-300">Roles</h2>
+          <span className="text-xs text-gray-500">{selRoles.size}/{roles.length} selected</span>
+          <span className="flex-1" />
+          <button
+            onClick={() => setSelRoles(new Set())}
+            className="rounded px-2 py-0.5 text-xs text-gray-300 hover:bg-white/10"
+          >
+            Clear all
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {groups.map((g) => {
+            const ids = g.roles.map((r) => r.id)
+            const chosen = ids.filter((id) => selRoles.has(id)).length
+            // Unopened teams stay folded so the list is short. A team holding a
+            // selected role opens itself, and the moderator's own roles are
+            // always in reach.
+            const open = openGroups[g.key] ?? (chosen > 0 || g.key === 'custom')
+            return (
+              <div key={g.key} className="overflow-hidden rounded-xl border border-white/10">
+                <div className="flex items-center gap-1 bg-white/5 px-2 py-1.5">
+                  <button
+                    aria-expanded={open}
+                    onClick={() => setOpenGroups((o) => ({ ...o, [g.key]: !open }))}
+                    className="flex min-w-0 flex-1 items-center gap-2 py-1 text-left"
+                  >
+                    <span aria-hidden="true" className="text-xs text-gray-400">{open ? '▼' : '▶'}</span>
+                    <span aria-hidden="true">{g.icon}</span>
+                    <span className="truncate font-semibold text-gray-200">{g.label}</span>{' '}
+                    <span className="shrink-0 text-xs text-gray-500">{chosen}/{ids.length}</span>
+                  </button>
+                  <button
+                    aria-label={`select all ${g.label}`}
+                    onClick={() => setSelRoles((s) => new Set([...s, ...ids]))}
+                    className="rounded px-2 py-0.5 text-xs text-gray-300 hover:bg-white/10"
+                  >
+                    All
+                  </button>
+                  <button
+                    aria-label={`clear ${g.label}`}
+                    onClick={() => setSelRoles((s) => new Set([...s].filter((id) => !ids.includes(id))))}
+                    className="rounded px-2 py-0.5 text-xs text-gray-300 hover:bg-white/10"
+                  >
+                    Clear
+                  </button>
+                </div>
+                {open && (
+                  <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-3">
+                    {g.roles.map((r) => (
+                      <Card
+                        key={r.id}
+                        name={r.name}
+                        role={r}
+                        selected={selRoles.has(r.id)}
+                        onToggle={() => toggle(selRoles, setSelRoles)(r.id)}
+                        onDelete={r.builtin ? undefined : () => deleteRole(r.id)}
+                        onReset={r.builtin && roleOverrides[r.id] ? () => resetRole(r.id) : undefined}
+                      />
+                    ))}
+                    {g.roles.length === 0 && (
+                      <p className="col-span-full px-1 py-2 text-xs text-gray-500">
+                        Roles you add below appear here.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <input

@@ -4,6 +4,7 @@ import {
   selectPlayersByRole, selectSurvivors, selectAssignedPlayerIds, linkColorOf, linkPartnersOf,
 } from './gameStore.js'
 import { useLibraryStore } from './libraryStore.js'
+import { VILLAGER } from '../lib/roles.js'
 
 const players = [
   { id: 'p1', name: 'Al' }, { id: 'p2', name: 'Bo' },
@@ -157,7 +158,7 @@ describe('gameStore', () => {
 
   it('selectRoleById returns VILLAGER for villager id', () => {
     g().startGame(players, roles)
-    expect(selectRoleById(g(), 'villager').name).toBe('Villager')
+    expect(selectRoleById(g(), 'villager')).toMatchObject(VILLAGER)
   })
 
   it('endGame remembers the last game in the library', () => {

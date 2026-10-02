@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.8.0-beta — 2026-10-02
+
+### Features
+- **41 built-in roles, named in Vietnamese:** Ma Sói, Sói Trùm, Tiên Tri, Phù Thủy, Bảo Vệ, Thợ Săn, Thần Tình Yêu and the rest are always in the library, each with its own portrait, colour and night-call defaults. They cannot be deleted. The English name is kept on each role so search and artwork matching still work in either language.
+- **Roles grouped into collapsible teams:** Phe Sói (8), Phe Dân (27), Trung Lập (6) and Tự Tạo. A team opens by itself when it holds a selected role and folds away otherwise, so 41 roles no longer mean 41 cards on screen. Each team header carries its own selected count and All / Clear buttons.
+- **Edit a built-in without losing it:** change a built-in's colour, artwork, name, night order or actions and the change is stored as an override. A ↺ button on an edited card restores the shipped values. Roles you type by hand still delete as before.
+
+### Notes
+- Built-in roles live in code, not in your browser's storage — only your edits are stored. A later fix to a role's name or portrait therefore reaches you, instead of losing to a stale copy saved locally.
+- Roles you created before this release are kept and moved into the Tự Tạo group. If one duplicates a built-in, both are shown; delete yours if you want.
+- `unknown` is no longer offered as a role. It stays as the fallback artwork for a hand-typed role whose name matches nothing, and can still be chosen from the artwork picker.
+
 ## v1.7.0-beta — 2026-10-02
 
 ### Features
