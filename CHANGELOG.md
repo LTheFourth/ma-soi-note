@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.7.0-beta — 2026-10-02
+
+### Features
+- **Real role portraits:** all 42 roles now carry illustrated flat low-poly portraits in place of the drawn silhouettes. Built from 1500x1500 originals down to 256x256 WebP (~3 KB each, 121 KB for the whole set) by `scripts/build-art.py`.
+
+### Fixes
+- **Artwork works offline:** the service worker's precache pattern did not include `.webp`, so every portrait would have been blank with no connection. Added, along with the artwork now shipping as separately cached files rather than base64 inside the JS bundle.
+
+### Notes
+- The 1500x1500 originals live in `src/art/portraits/` and are gitignored — 42 files at ~4 MB each would bloat the repo permanently. Back that folder up outside the repo; the build script cannot recreate them.
+- The hand-drawn SVG fallback set and its generator are removed now that every role has a portrait. Recoverable from commit 419af45 if ever needed.
+
 ## v1.6.0-beta — 2026-10-02
 
 ### Features

@@ -10,6 +10,11 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // The default pattern misses .webp, which would leave every role
+        // portrait uncached and blank offline.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,webmanifest}'],
+      },
       includeAssets: ['pwa-192.png', 'pwa-512.png'],
       manifest: {
         name: 'Werewolf Admin',
@@ -26,6 +31,11 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // Keep role artwork as separate cached files instead of base64 inside the
+    // JS bundle: each portrait is ~3 KB, below the 4 KB default.
+    assetsInlineLimit: 1024,
+  },
   test: {
     environment: 'jsdom',
     globals: true,
